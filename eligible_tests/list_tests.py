@@ -57,14 +57,14 @@ def extract_tag_from_extra(extra: list[str]) -> str | None:
     return None
 
 
-def build_output_path(base_output: str, system: str, mode: str | None, tag: str | None) -> Path:
+def build_output_path(base_output: str, system: str, mode: str | None, tag: str | None, output_dir: str | None = None) -> Path:
     """
-    Create output path under eligible_tests/ with suffix:
+    Create output path in the specified output directory (or current working directory if not specified) with suffix:
       <stem>_<system>[_mode-<mode>][_tags-<tag>].md
     """
-    out_dir = Path("eligible_tests")
-    out_dir.mkdir(parents=True, exist_ok=True)
-
+    # The output path is based on the provided output_dir, or uses CWD if not specified.
+    out_dir = Path(output_dir) if output_dir else Path.cwd()
+    
     p = Path(base_output)
     stem = p.stem if p.suffix else p.name
     ext = p.suffix if p.suffix else ".md"
@@ -339,8 +339,10 @@ def main():
                     help="ReFrame -L listing type: T (regular) or C (concretized).")
     ap.add_argument("--exclude-related", action="store_true",
                     help="Exclude dependency/related rows (^ in ReFrame output).")
-    ap.add_argument("-o", "--output", default="eligible_tests.md",
+    ap.add_argument("-f", "--filename", default="eligible_tests.md",
                     help="Base output filename (suffixes added automatically).")
+    ap.add_argument("-o", "--output_dir", default=None,
+                    help="Output directory for the report (default: current working directory).")
     ap.add_argument("extra", nargs=argparse.REMAINDER,
                     help="Extra args passed to ReFrame after '--'")
 
@@ -378,8 +380,11 @@ def main():
         )
 
     # Output paths
-    md_path = build_output_path(args.output, args.system, args.mode, tag_used)
+    md_path = build_output_path(args.filename, args.system, args.mode, tag_used, args.output_dir)
     out_path = build_reframe_out_path(md_path)
+
+    # Create output directory if it doesn't exist
+    md_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Save raw ReFrame output alongside the Markdown report
     out_path.write_text(combined, encoding="utf-8")
