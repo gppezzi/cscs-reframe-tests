@@ -139,7 +139,7 @@ Example:
 
 ### 0 checks
 
-- First run the same arguments directly with `reframe -L` to confirm ReFrame selects tests. citeturn84view145  
+- First run the same arguments directly with `reframe -L` to confirm ReFrame selects tests. 
 - If your checks tree is nested, ensure `-R` is passed so discovery is recursive. citeturn84view145
 
 ### Links don’t resolve
