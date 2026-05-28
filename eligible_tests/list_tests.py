@@ -319,6 +319,183 @@ def write_markdown(items: list[dict],
 
     output_path.write_text("\n".join(lines), encoding="utf-8")
 
+def run_matrix_mode(args):
+    """
+    Matrix mode: build a cross-system view of eligible tests.
+
+    New behavior:
+    - Runs multiple `reframe -L` calls
+    - Aggregates results into a matrix
+    - Groups by category
+    """
+
+    print("[INFO] Running matrix mode")
+
+    # Reuse original base args construction
+    base_args = []
+
+    for c in args.config_files:
+        base_args += ["-C", c]
+
+    for c in args.check_paths:
+        base_args += ["-c", c]
+
+    if args.recursive:
+        base_args.append("-R")
+
+    targets = []
+    labels = []
+
+    # -------------------------------------------
+    # Build target list (explicit mode vs tag)
+    # -------------------------------------------
+    if args.matrix_mode:
+        for t in args.matrix_mode:
+            parts = t.split(":")
+            if len(parts) != 3:
+                raise ValueError("--matrix-mode requires label:system:mode")
+
+            label, system, mode = parts
+            targets.append((label, system, mode, None))
+            labels.append(label)
+
+    if args.matrix_tag:
+        for t in args.matrix_tag:
+            parts = t.split(":")
+            if len(parts) != 3:
+                raise ValueError("--matrix-tag requires label:system:tag")
+
+            label, system, tag = parts
+            targets.append((label, system, None, tag))
+            labels.append(label)
+
+    # -------------------------------------------
+    # Collect data from ReFrame runs
+    # -------------------------------------------
+    all_tests = {}
+    matrix = {}
+
+    for label, system, mode, tag in targets:
+        print(f"[INFO] Collecting target: {label}")
+        print(f"       system={system}, mode={mode}, tag={tag}")
+
+        cmd = ["-L", args.list_type, "--system", system]
+        if mode:
+            cmd += ["-m", mode]
+        if tag:
+            cmd += ["--tag", tag]
+
+        # Print full command (NEW debug clarity)
+        full_cmd = ["reframe"] + base_args + cmd + args.extra
+        print("[CMD] " + " ".join(full_cmd))
+
+        rc, out, err = run_reframe(base_args + cmd + args.extra)
+
+        # Preserve original debug behavior
+        print(out)
+        if err:
+            print(err)
+
+        items = parse_list_detailed(out)
+
+        for item in items:
+            name = item["display_name"]
+
+            if name not in all_tests:
+                all_tests[name] = item
+
+            matrix.setdefault(name, {})
+            matrix[name][label] = True
+
+    # -------------------------------------------
+    # Group tests by category (reuse original helpers)
+    # -------------------------------------------
+    categories = {}
+
+    for name, item in all_tests.items():
+        rel = checks_relative_path(item.get("file"))
+        cat = category_from_checks_rel(rel)
+
+        categories.setdefault(cat, []).append(name)
+
+    # -------------------------------------------
+    # Output path (reuse original naming logic)
+    # -------------------------------------------
+    output_path = build_output_path(
+        args.filename,
+        "matrix",
+        None,
+        None,
+        args.output_dir
+    )
+
+    print(f"[INFO] Writing matrix report: {output_path}")
+
+    # -------------------------------------------
+    # Build markdown
+    # -------------------------------------------
+    from datetime import datetime
+
+    ts = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z")
+
+    lines = [
+        f"## Test Coverage Matrix",
+        "",
+        f"- Generated: `{ts}`",
+        ""
+]
+
+    totals = {l: 0 for l in labels}
+
+    for cat, tests in sorted(categories.items()):
+        lines.append(f"### {cat}")
+        lines.append("")
+
+        header = "| Test name | " + " | ".join(labels) + " |"
+        sep = "|-----------|" + "-----------|" * len(labels)
+
+        lines.append(header)
+        lines.append(sep)
+
+        for name in sorted(tests):
+            item = all_tests[name]
+
+            cell = test_name_cell(
+                item["display_name"],
+                item["kind"],
+                item.get("file")
+            )
+
+            row = [cell]
+
+            for l in labels:
+                val = matrix[name].get(l)
+                if val:
+                    totals[l] += 1
+                row.append("✅" if val else "❌")
+
+            lines.append("| " + " | ".join(row) + " |")
+
+        lines.append("")
+
+    lines.append("")
+    lines.append("### Summary")
+    lines.append("")
+
+    # Header
+    summary_header = "| Metric | " + " | ".join(labels) + " |"
+    summary_sep = "|--------|" + "--------|" * len(labels)
+
+    lines.append(summary_header)
+    lines.append(summary_sep)
+
+    # Data row
+    summary_row = "| TOTAL | " + " | ".join(str(totals[l]) for l in labels) + " |"
+    lines.append(summary_row)
+
+    output_path.write_text("\n".join(lines))
+
+    print("[INFO] Matrix generation complete")
 
 # -----------------------------------------------------------------------------
 # Main
@@ -326,7 +503,7 @@ def write_markdown(items: list[dict],
 
 def main():
     ap = argparse.ArgumentParser(description="Generate Markdown report by parsing `reframe -L` output.")
-    ap.add_argument("--system", required=True, help="ReFrame system name (e.g. daint)")
+    ap.add_argument("--system", help="ReFrame system name (e.g. daint)")
     ap.add_argument("--mode", help="ReFrame execution mode (passed through)")
     ap.add_argument("--tag", "--tags", dest="tag", help="Tag expression passed to ReFrame (optional)")
     ap.add_argument("-C", dest="config_files", action="append", default=[],
@@ -343,6 +520,8 @@ def main():
                     help="Base output filename (suffixes added automatically).")
     ap.add_argument("-o", "--output_dir", default=None,
                     help="Output directory for the report (default: current working directory).")
+    ap.add_argument("--matrix-mode", action="append", help="Matrix entry: label:system:mode")
+    ap.add_argument("--matrix-tag", action="append", help="Matrix entry: label:system:tag")
     ap.add_argument("extra", nargs=argparse.REMAINDER,
                     help="Extra args passed to ReFrame after '--'")
 
@@ -351,6 +530,13 @@ def main():
     extra = list(args.extra)
     if extra and extra[0] == "--":
         extra = extra[1:]
+
+    # -------------------------------------------
+    # MATRIX MODE (NEW)
+    # -------------------------------------------
+    if args.matrix_mode or args.matrix_tag:
+        run_matrix_mode(args)
+        return
 
     tag_used = args.tag if args.tag else extract_tag_from_extra(extra)
 
