@@ -1,6 +1,6 @@
 ## Test Coverage Matrix
 
-- Generated: `2026-05-28 15:27:36 +0200`
+- Generated: `2026-05-28 18:36:57 +0200`
 
 ### apps/pytorch
 
@@ -16,13 +16,6 @@
 | [PyTorchMegatronLM_CE_apertus70b](../checks/apps/pytorch/pytorch_megatronlm.py)<br>• %model=apertus3-70b | ✅ | ❌ | ✅ | ✅ |
 | [PyTorchNCCLAllReduce](../checks/apps/pytorch/pytorch_allreduce.py)<br>• %image=nvcr.io#nvidia/pytorch:25.06-py3 | ✅ | ❌ | ✅ | ✅ |
 | [test_image_tag_retrieval](../checks/apps/pytorch/pytorch_nvidia.py) | ✅ | ❌ | ✅ | ✅ |
-
-### compile
-
-| Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
-|-----------|-----------|-----------|-----------|-----------|
-| [LibSciAccSymLinkTest](../checks/compile/libsci_acc_symlink.py)<br>• %lib_name=libsci_acc_cray_nv90 | ✅ | ❌ | ❌ | ❌ |
-| [LibSciAccSymLinkTest](../checks/compile/libsci_acc_symlink.py)<br>• %lib_name=libsci_acc_gnu_nv90 | ✅ | ❌ | ❌ | ❌ |
 
 ### containers/container_engine
 
@@ -146,6 +139,28 @@
 
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
+| [EnvVariableConfigTest](../checks/system/integration/v-cluster_config.py)<br>• %envs_info=('APPS', '/capstor/apps/cscs/daint') | ✅ | ✅ | ✅ | ✅ |
+| [EnvVariableConfigTest](../checks/system/integration/v-cluster_config.py)<br>• %envs_info=('SCRATCH', '/capstor/scratch/cscs/') | ✅ | ✅ | ✅ | ✅ |
+| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('/users', 'nfs') | ✅ | ✅ | ✅ | ✅ |
+| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('capstor/scratch/cscs', 'lustre') | ✅ | ✅ | ✅ | ✅ |
+| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('capstor/store/cscs', 'lustre') | ✅ | ✅ | ✅ | ✅ |
+| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('iopsstor/scratch/cscs', 'lustre') | ✅ | ✅ | ✅ | ✅ |
+| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('iopsstor/store/cscs', 'lustre') | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=ansible | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=bubblewrap | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=datacenter-gpu-manager | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=gcc12 | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=gcc12-c++ | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=gcc12-fortran | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=htop | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=libtool | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=lsof | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=ltrace | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=lua-lmod | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=netcat | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=nnn | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=pycxi-utils | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=wget | ✅ | ✅ | ✅ | ✅ |
 | [apps-path-check-eiger](../checks/system/integration/alps.py) | ❌ | ✅ | ❌ | ❌ |
 | [curl-external-access](../checks/system/integration/alps.py) | ✅ | ✅ | ✅ | ✅ |
 | [df-command-timeout](../checks/system/integration/alps.py) | ✅ | ✅ | ✅ | ✅ |
@@ -252,4 +267,4 @@
 
 | Metric | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |--------|--------|--------|--------|--------|
-| TOTAL | 141 | 98 | 96 | 96 |
+| TOTAL | 161 | 120 | 118 | 118 |
