@@ -3,11 +3,24 @@
 - Filters:
   - system: `daint`
   - mode: `maintenance`
-  - checks: `91`
-- Generated: `2026-05-28 18:42:56 +0200`
+  - checks: `104`
+- Generated: `2026-05-28 19:13:05 +0200`
 
 | Test name | Description | Category |
 |----------|-------------|----------|
+| [HostnameCheck](../checks/system/slurm/slurm.py) | Check hostname pattern nidXXXXXX on the CN | [system/slurm](../checks/system/slurm/) |
+| [EnvironmentVariableCheck](../checks/system/slurm/slurm.py) | Test if user env variables are propagated to CN | [system/slurm](../checks/system/slurm/) |
+| [NvidiaSmiDriverVersion](../checks/system/slurm/slurm.py) | Nvidia-smi sanity check (output driver version) | [system/slurm](../checks/system/slurm/) |
+| [DefaultRequestGPUSetsGRES](../checks/system/slurm/slurm.py) | Checks slurm config for 4-GPUs per node | [system/slurm](../checks/system/slurm/) |
+| [SlurmTransparentHugepagesCheck](../checks/system/slurm/slurm.py)<br>• %hugepages_options=default | Check Slurm transparent hugepages configuration | [system/slurm](../checks/system/slurm/) |
+| [SlurmTransparentHugepagesCheck](../checks/system/slurm/slurm.py)<br>• %hugepages_options=always | Check Slurm transparent hugepages configuration | [system/slurm](../checks/system/slurm/) |
+| [SlurmTransparentHugepagesCheck](../checks/system/slurm/slurm.py)<br>• %hugepages_options=madvise | Check Slurm transparent hugepages configuration | [system/slurm](../checks/system/slurm/) |
+| [SlurmTransparentHugepagesCheck](../checks/system/slurm/slurm.py)<br>• %hugepages_options=never | Check Slurm transparent hugepages configuration | [system/slurm](../checks/system/slurm/) |
+| [SlurmParanoidCheck](../checks/system/slurm/slurm.py) | Check that perf_event_paranoid enables per-process and system wideperformance monitoring | [system/slurm](../checks/system/slurm/) |
+| [SlurmNoIsolCpus](../checks/system/slurm/slurm.py) | Check that isolcpus isn't enabled as it prevents threads from migrating between cores. This makes e.g. make jobs or OpenMPI threads all be stuck to one core. See e.g. | [system/slurm](../checks/system/slurm/) |
+| [NVreg_RestrictProfilingToAdminUsers](../checks/system/slurm/slurm.py) | Allow access to the GPU Performance Counters for NVIDIA tools: | [system/slurm](../checks/system/slurm/) |
+| [SlurmUvmPerfAccessCounterMigration](../checks/system/slurm/slurm.py) | Check that uvm_perf_access_counter_mimc_migration_enable is set to 0 as it is buggy in older drivers. If the driver is at least version 565, the name of the option is different and should be set to the default (-1). | [system/slurm](../checks/system/slurm/) |
+| [SlurmGPUGresTest](../checks/system/slurm/slurm.py) | Ensure that the Slurm GRES (Generic REsource Scheduling) of the number of gpus is correctly set on all the nodes of each partition. For the current partition, the test performs the following steps: 1) count the number of nodes (node_count) 2) count the number of nodes having Gres=gpu:N (gres_count) where N=num_devices from the configuration 3) ensure that 1) and 2) match | [system/slurm](../checks/system/slurm/) |
 | [InvalidAccount](../checks/system/slurm/invalid_acc.py) | Check if Slurm accepts job submission using an invalid account. Reframe should raise a failure if the job starts. | [system/slurm](../checks/system/slurm/) |
 | [timeout-completes](../checks/system/integration/alps.py) | Verify timeout completes successfully | [system/integration](../checks/system/integration/) |
 | [timeout-signal-term](../checks/system/integration/alps.py) | Verify timeout delivers TERM after expiry | [system/integration](../checks/system/integration/) |

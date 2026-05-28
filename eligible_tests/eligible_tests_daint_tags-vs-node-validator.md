@@ -4,7 +4,7 @@
   - system: `daint`
   - tags: `vs-node-validator`
   - checks: `25`
-- Generated: `2026-05-28 18:34:35 +0200`
+- Generated: `2026-05-28 19:14:25 +0200`
 
 | Test name | Description | Category |
 |----------|-------------|----------|

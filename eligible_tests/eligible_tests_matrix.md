@@ -1,6 +1,6 @@
 ## Test Coverage Matrix
 
-- Generated: `2026-05-28 18:36:57 +0200`
+- Generated: `2026-05-28 19:16:48 +0200`
 
 ### apps/pytorch
 
@@ -254,7 +254,27 @@
 
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
+| [DefaultRequestGPUSetsGRES](../checks/system/slurm/slurm.py) | ✅ | ❌ | ✅ | ✅ |
+| [EnvironmentVariableCheck](../checks/system/slurm/slurm.py) | ✅ | ✅ | ✅ | ✅ |
+| [HostnameCheck](../checks/system/slurm/slurm.py) | ✅ | ✅ | ✅ | ✅ |
 | [InvalidAccount](../checks/system/slurm/invalid_acc.py) | ✅ | ✅ | ✅ | ✅ |
+| [NVreg_RestrictProfilingToAdminUsers](../checks/system/slurm/slurm.py) | ✅ | ❌ | ✅ | ✅ |
+| [NvidiaSmiDriverVersion](../checks/system/slurm/slurm.py) | ✅ | ❌ | ✅ | ✅ |
+| [SlurmGPUGresTest](../checks/system/slurm/slurm.py) | ✅ | ❌ | ✅ | ✅ |
+| [SlurmNoIsolCpus](../checks/system/slurm/slurm.py) | ✅ | ✅ | ✅ | ✅ |
+| [SlurmParanoidCheck](../checks/system/slurm/slurm.py) | ✅ | ✅ | ✅ | ✅ |
+| [SlurmPrologEpilogCheck](../checks/system/slurm/slurm.py) | ✅ | ✅ | ✅ | ✅ |
+| [SlurmQueueStatusCheck](../checks/system/slurm/slurm.py)<br>• %slurm_partition=debug | ✅ | ✅ | ✅ | ✅ |
+| [SlurmQueueStatusCheck](../checks/system/slurm/slurm.py)<br>• %slurm_partition=low | ❌ | ✅ | ❌ | ❌ |
+| [SlurmQueueStatusCheck](../checks/system/slurm/slurm.py)<br>• %slurm_partition=normal* | ✅ | ✅ | ✅ | ✅ |
+| [SlurmQueueStatusCheck](../checks/system/slurm/slurm.py)<br>• %slurm_partition=prepost | ❌ | ✅ | ❌ | ❌ |
+| [SlurmTransparentHugepagesCheck](../checks/system/slurm/slurm.py)<br>• %hugepages_options=always | ✅ | ❌ | ✅ | ✅ |
+| [SlurmTransparentHugepagesCheck](../checks/system/slurm/slurm.py)<br>• %hugepages_options=default | ✅ | ❌ | ✅ | ✅ |
+| [SlurmTransparentHugepagesCheck](../checks/system/slurm/slurm.py)<br>• %hugepages_options=madvise | ✅ | ❌ | ✅ | ✅ |
+| [SlurmTransparentHugepagesCheck](../checks/system/slurm/slurm.py)<br>• %hugepages_options=never | ✅ | ❌ | ✅ | ✅ |
+| [SlurmUvmPerfAccessCounterMigration](../checks/system/slurm/slurm.py) | ✅ | ❌ | ✅ | ✅ |
+| [slurm_response_check](../checks/system/slurm/slurm.py)<br>• %command=sacct | ✅ | ✅ | ✅ | ✅ |
+| [slurm_response_check](../checks/system/slurm/slurm.py)<br>• %command=squeue | ✅ | ✅ | ✅ | ✅ |
 
 ### system/uenv
 
@@ -267,4 +287,4 @@
 
 | Metric | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |--------|--------|--------|--------|--------|
-| TOTAL | 161 | 120 | 118 | 118 |
+| TOTAL | 179 | 131 | 136 | 136 |
