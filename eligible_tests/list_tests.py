@@ -3,8 +3,11 @@
 Generate a Markdown report by running and parsing ReFrame `-L` (list-detailed).
 
 Why parsing?
-- `reframe -L` already applies the exact selection logic (system/mode/tags/prgenv/etc.). [1](https://reframe-hpc.readthedocs.io/en/v3.5.0/manpage.html)
-- We simply format what ReFrame outputs, rather than re-implementing filtering.
+- `reframe -L` already applies the exact selection logic
+    (system/mode/tags/prgenv/etc.). See ReFrame docs for details:
+    https://reframe-hpc.readthedocs.io/en/v3.5.0/manpage.html
+- We simply format what ReFrame outputs, rather than
+    re-implementing filtering.
 """
 
 import argparse
@@ -13,6 +16,7 @@ import shlex
 import subprocess
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 from urllib.parse import quote
 
 
@@ -44,8 +48,11 @@ def truncate_filename_part(s: str, max_len: int = 60) -> str:
     return s if len(s) <= max_len else s[:max_len].rstrip("_-.")
 
 
-def extract_tag_from_extra(extra: list[str]) -> str | None:
-    """Extract --tag from passthrough args: supports '--tag=EXPR' and '--tag EXPR'."""
+def extract_tag_from_extra(extra: list[str]) -> Optional[str]:
+    """Extract `--tag` from passthrough args.
+
+    Supports both `--tag=EXPR` and `--tag EXPR` forms.
+    """
     if not extra:
         return None
 
@@ -57,23 +64,64 @@ def extract_tag_from_extra(extra: list[str]) -> str | None:
     return None
 
 
-def build_output_path(base_output: str, system: str, mode: str | None, tag: str | None, output_dir: str | None = None) -> Path:
+def normalize_extra_args(extra: list[str]) -> list[str]:
+    """Normalize passthrough args for ReFrame.
+
+    This removes a leading `--` separator and strips any `--tag` or
+    `--tags` arguments so tags are not passed twice.
     """
-    Create output path in the specified output directory (or current working directory if not specified) with suffix:
-      <stem>_<system>[_mode-<mode>][_tags-<tag>].md
+    if extra and extra[0] == "--":
+        extra = extra[1:]
+
+    cleaned = []
+    skip_next = False
+
+    for arg in extra:
+        if skip_next:
+            skip_next = False
+            continue
+        if arg.startswith("--tag="):
+            continue
+        if arg in ("--tag", "--tags"):
+            skip_next = True
+            continue
+        cleaned.append(arg)
+
+    return cleaned
+
+
+def build_output_path(
+    base_output: str,
+    system: str,
+    mode: Optional[str],
+    tag: Optional[str],
+    output_dir: Optional[str] = None,
+) -> Path:
+    """Create an output path with a suffixed filename.
+
+    The filename will be: <stem>_<system>[_mode-<mode>][_tags-<tag>].md
     """
-    # The output path is based on the provided output_dir, or uses CWD if not specified.
-    out_dir = Path(output_dir) if output_dir else Path.cwd()
-    
+    # Default output directory: if user provided one, use it; otherwise use
+    # the script directory (not CWD). This avoids creating nested
+    # eligible_tests/eligible_tests/ when invoked from the script folder.
+    script_dir = Path(__file__).resolve().parent
+    out_dir = Path(output_dir) if output_dir else script_dir
+
     p = Path(base_output)
     stem = p.stem if p.suffix else p.name
     ext = p.suffix if p.suffix else ".md"
 
     parts = [sanitize_for_filename(system)]
     if mode:
-        parts.append(f"mode-{truncate_filename_part(sanitize_for_filename(mode))}")
+        parts.append(
+            "mode-"
+            + truncate_filename_part(sanitize_for_filename(mode))
+        )
     if tag:
-        parts.append(f"tags-{truncate_filename_part(sanitize_for_filename(tag))}")
+        parts.append(
+            "tags-"
+            + truncate_filename_part(sanitize_for_filename(tag))
+        )
 
     suffix = "_".join(parts)
     filename = f"{stem}_{suffix}{ext}"
@@ -96,15 +144,20 @@ def build_reframe_out_path(md_path: Path) -> Path:
 
 ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 FOUND_RE = re.compile(r"(?m)^\s*Found\s+(\d+)\s+check\(s\)\.?\s*$")
-HEADER_RE = re.compile(r"^\s*(?P<mark>[-^])\s+(?P<name>.+?)\s*/(?P<hash>[0-9a-fA-F]+)\s*$")
-DETAIL_RE = re.compile(r"^\s+(?P<key>[A-Za-z0-9_.-]+):\s*(?P<val>.*)\s*$")
+HEADER_RE = re.compile(
+    r"^\s*(?P<mark>[-^])\s+(?P<name>.+)\s*/"
+    r"(?P<hash>[0-9a-fA-F]+)\s*$"
+)
+DETAIL_RE = re.compile(
+    r"^\s+(?P<key>[A-Za-z0-9_.-]+):\s*(?P<val>.*)\s*$"
+)
 
 
 def strip_ansi(text: str) -> str:
     return ANSI_RE.sub("", text or "")
 
 
-def parse_found_count(text: str) -> int | None:
+def parse_found_count(text: str) -> Optional[int]:
     m = FOUND_RE.search(strip_ansi(text))
     return int(m.group(1)) if m else None
 
@@ -130,8 +183,8 @@ def parse_list_detailed(text: str) -> list[dict]:
     lines = clean.splitlines()
 
     items: list[dict] = []
-    current: dict | None = None
-    last_key: str | None = None
+    current: Optional[dict] = None
+    last_key: Optional[str] = None
 
     def flush():
         nonlocal current
@@ -176,7 +229,8 @@ def parse_list_detailed(text: str) -> list[dict]:
         if last_key == "description" and line.startswith(" "):
             cont = line.strip()
             if cont:
-                current["description"] = (current["description"] or "").rstrip() + " " + cont
+                prefix = (current["description"] or "").rstrip()
+                current["description"] = prefix + " " + cont
 
     flush()
     return items
@@ -198,13 +252,18 @@ def normalize_table_cell(text: str | None) -> str:
 
 
 def split_name_and_params(name: str) -> tuple[str, list[str]]:
-    """Extract %param=value tokens from display_name."""
+    """Extract %param=value tokens from display_name.
+
+    Capture parameter values more robustly so values containing spaces or
+    special chars aren't truncated. We capture up to the next ' %' boundary.
+    """
     s = (name or "").strip()
     if not s:
         return "—", []
-    params = re.findall(r"%\S+", s)
-    base = re.sub(r"\s*%\S+", "", s).strip()
-    return base if base else s, params
+
+    params = re.findall(r"%.*?(?=\s%|$)", s)
+    base = re.sub(r"\s*%.*?(?=\s%|$)", "", s).strip()
+    return (base if base else s, params)
 
 
 def params_inline_lines(params: list[str]) -> str:
@@ -214,7 +273,7 @@ def params_inline_lines(params: list[str]) -> str:
     return "".join(f"<br>• {normalize_table_cell(p)}" for p in params)
 
 
-def checks_relative_path(file_path: str) -> str | None:
+def checks_relative_path(file_path: str) -> Optional[str]:
     """Return relative path starting at checks/"""
     if not file_path:
         return None
@@ -228,7 +287,7 @@ def checks_relative_path(file_path: str) -> str | None:
     return None
 
 
-def category_from_checks_rel(rel: str | None) -> str:
+def category_from_checks_rel(rel: Optional[str]) -> str:
     if not rel:
         return "—"
     parts = rel.split("/")
@@ -257,10 +316,15 @@ def category_cell(file_path: str | None) -> str:
     return md_link(normalize_table_cell(category), href)
 
 
-def test_name_cell(display_name: str, kind: str, file_path: str | None) -> str:
+def test_name_cell(
+    display_name: str,
+    kind: str,
+    file_path: Optional[str],
+) -> str:
     """
-    Show the actual test name (not filename), with parameter bullets underneath.
-    The test name itself is linked to the check's defining file (../checks/.../file.py).
+    Show the actual test name (not filename), with parameter bullets
+    underneath. The test name itself is linked to the check's defining file
+    (../checks/.../file.py).
     """
     base, params = split_name_and_params(display_name)
     prefix = "↳ " if kind == "related" else ""
@@ -277,7 +341,12 @@ def test_name_cell(display_name: str, kind: str, file_path: str | None) -> str:
     return link_text + bullets
 
 
-def build_preamble(system: str, mode: str | None, tag: str | None, found: int | None) -> str:
+def build_preamble(
+    system: str,
+    mode: Optional[str],
+    tag: Optional[str],
+    found: Optional[int],
+) -> str:
     lines = ["- Filters:"]
     lines.append(f"  - system: `{system}`")
     if mode:
@@ -293,9 +362,9 @@ def build_preamble(system: str, mode: str | None, tag: str | None, found: int | 
 def write_markdown(items: list[dict],
                    output_path: Path,
                    system: str,
-                   mode: str | None,
-                   tag: str | None,
-                   found_count: int | None,
+                   mode: Optional[str],
+                   tag: Optional[str],
+                   found_count: Optional[int],
                    exclude_related: bool):
     lines = [
         f"## Eligible ReFrame Tests on {system}",
@@ -311,13 +380,16 @@ def write_markdown(items: list[dict],
             continue
 
         file_path = it.get("file")
-        name_cell = test_name_cell(it.get("display_name") or "—", it["kind"], file_path)
+        display = it.get("display_name") or "—"
+        name_cell = test_name_cell(display, it["kind"], file_path)
         desc_cell = normalize_table_cell(it.get("description") or "—")
         cat_cell = category_cell(file_path)
 
         lines.append(f"| {name_cell} | {desc_cell} | {cat_cell} |")
 
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text("\n".join(lines), encoding="utf-8")
+
 
 def run_matrix_mode(args):
     """
@@ -385,16 +457,43 @@ def run_matrix_mode(args):
         if tag:
             cmd += ["--tag", tag]
 
-        # Print full command (NEW debug clarity)
-        full_cmd = ["reframe"] + base_args + cmd + args.extra
+        # Normalize extra args: strip a leading '--' if provided, to avoid
+        # passing the literal separator to ReFrame. Make a copy so we don't
+        # mutate the original.
+        extra = list(args.extra or [])
+        if extra and extra[0] == "--":
+            extra = extra[1:]
+
+        # Remove any --tag/--tags entries from `extra` to avoid duplicate
+        # tag arguments when we append an explicit --tag later.
+        cleaned_extra = []
+        skip_next = False
+        for i, e in enumerate(extra):
+            if skip_next:
+                skip_next = False
+                continue
+            if e.startswith("--tag="):
+                continue
+            if e in ("--tag", "--tags"):
+                skip_next = True
+                continue
+            cleaned_extra.append(e)
+
+        # Print full command for debugging.
+        full_cmd = ["reframe"] + base_args + cmd + cleaned_extra
         print("[CMD] " + " ".join(full_cmd))
 
-        rc, out, err = run_reframe(base_args + cmd + args.extra)
+        rc, out, err = run_reframe(base_args + cmd + cleaned_extra)
 
-        # Preserve original debug behavior
-        print(out)
-        if err:
-            print(err)
+        if rc != 0:
+            msg = (
+                f"[ERROR] reframe exited with code {rc}; "
+                f"skipping target {label}"
+            )
+            print(msg)
+            if err:
+                print(err)
+            continue
 
         items = parse_list_detailed(out)
 
@@ -426,7 +525,7 @@ def run_matrix_mode(args):
         "matrix",
         None,
         None,
-        args.output_dir
+        args.output_dir,
     )
 
     print(f"[INFO] Writing matrix report: {output_path}")
@@ -439,13 +538,13 @@ def run_matrix_mode(args):
     ts = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z")
 
     lines = [
-        f"## Test Coverage Matrix",
+        "## Test Coverage Matrix",
         "",
         f"- Generated: `{ts}`",
-        ""
-]
+        "",
+    ]
 
-    totals = {l: 0 for l in labels}
+    totals = {label: 0 for label in labels}
 
     for cat, tests in sorted(categories.items()):
         lines.append(f"### {cat}")
@@ -468,10 +567,10 @@ def run_matrix_mode(args):
 
             row = [cell]
 
-            for l in labels:
-                val = matrix[name].get(l)
+            for label in labels:
+                val = matrix[name].get(label)
                 if val:
-                    totals[l] += 1
+                    totals[label] += 1
                 row.append("✅" if val else "❌")
 
             lines.append("| " + " | ".join(row) + " |")
@@ -490,46 +589,87 @@ def run_matrix_mode(args):
     lines.append(summary_sep)
 
     # Data row
-    summary_row = "| TOTAL | " + " | ".join(str(totals[l]) for l in labels) + " |"
+    summary_row = (
+        "| TOTAL | "
+        + " | ".join(str(totals[label]) for label in labels)
+        + " |"
+    )
     lines.append(summary_row)
 
-    output_path.write_text("\n".join(lines))
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text("\n".join(lines), encoding="utf-8")
 
     print("[INFO] Matrix generation complete")
+
 
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
 
 def main():
-    ap = argparse.ArgumentParser(description="Generate Markdown report by parsing `reframe -L` output.")
+    ap = argparse.ArgumentParser(
+        description=(
+            "Generate Markdown report by parsing ReFrame `-L` output."
+        )
+    )
     ap.add_argument("--system", help="ReFrame system name (e.g. daint)")
     ap.add_argument("--mode", help="ReFrame execution mode (passed through)")
-    ap.add_argument("--tag", "--tags", dest="tag", help="Tag expression passed to ReFrame (optional)")
+    ap.add_argument(
+        "--tag",
+        "--tags",
+        dest="tag",
+        help="Tag expression to pass to ReFrame (optional)",
+    )
     ap.add_argument("-C", dest="config_files", action="append", default=[],
                     help="ReFrame config file (repeatable: -C a.py -C b.py)")
     ap.add_argument("-c", dest="check_paths", action="append", default=[],
                     help="Check path(s) (repeatable, passed through)")
     ap.add_argument("-R", dest="recursive", action="store_true",
                     help="Pass -R to ReFrame")
-    ap.add_argument("--list-type", choices=["T", "C"], default="T",
-                    help="ReFrame -L listing type: T (regular) or C (concretized).")
-    ap.add_argument("--exclude-related", action="store_true",
-                    help="Exclude dependency/related rows (^ in ReFrame output).")
-    ap.add_argument("-f", "--filename", default="eligible_tests.md",
-                    help="Base output filename (suffixes added automatically).")
-    ap.add_argument("-o", "--output_dir", default=None,
-                    help="Output directory for the report (default: current working directory).")
-    ap.add_argument("--matrix-mode", action="append", help="Matrix entry: label:system:mode")
-    ap.add_argument("--matrix-tag", action="append", help="Matrix entry: label:system:tag")
+    ap.add_argument(
+        "--list-type",
+        choices=["T", "C"],
+        default="T",
+        help="ReFrame -L listing type: T or C.",
+    )
+    ap.add_argument(
+        "--exclude-related",
+        action="store_true",
+        help="Exclude related rows ('^').",
+    )
+    ap.add_argument(
+        "-f",
+        "--filename",
+        default="eligible_tests.md",
+        help="Base output filename (suffixes added automatically).",
+    )
+    ap.add_argument(
+        "-o",
+        "--output_dir",
+        default=None,
+        help="Output directory for the report (default: script directory).",
+    )
+    ap.add_argument(
+        "--matrix-mode",
+        action="append",
+        help="Matrix entry: label:system:mode",
+    )
+    ap.add_argument(
+        "--matrix-tag",
+        action="append",
+        help="Matrix entry: label:system:tag",
+    )
     ap.add_argument("extra", nargs=argparse.REMAINDER,
                     help="Extra args passed to ReFrame after '--'")
 
     args = ap.parse_args()
 
-    extra = list(args.extra)
-    if extra and extra[0] == "--":
-        extra = extra[1:]
+    extra = normalize_extra_args(list(args.extra))
+
+    if not args.matrix_mode and not args.matrix_tag and not args.system:
+        raise SystemExit(
+            "--system is required unless using --matrix-mode or --matrix-tag"
+        )
 
     # -------------------------------------------
     # MATRIX MODE (NEW)
@@ -552,21 +692,31 @@ def main():
     if args.mode:
         reframe_args.extend(["--mode", args.mode])
     if tag_used:
-        reframe_args.append(f"--tag={tag_used}")  # preserve regex-like expressions
+        # Preserve regex-like expressions when passing tags to ReFrame.
+        reframe_args.append(f"--tag={tag_used}")
     reframe_args.extend(extra)
 
+    print("[CMD] reframe " + " ".join(shlex.quote(x) for x in reframe_args))
     rc, out, err = run_reframe(reframe_args)
     combined = (out or "") + "\n" + (err or "")
 
     if rc != 0:
         raise SystemExit(
             "ReFrame failed.\n\n"
-            f"Command: reframe {' '.join(shlex.quote(x) for x in reframe_args)}\n\n"
-            f"STDERR:\n{err}"
+            + "Command: reframe "
+            + " ".join(shlex.quote(x) for x in reframe_args)
+            + "\n\nSTDERR:\n"
+            + (err or "")
         )
 
     # Output paths
-    md_path = build_output_path(args.filename, args.system, args.mode, tag_used, args.output_dir)
+    md_path = build_output_path(
+        args.filename,
+        args.system,
+        args.mode,
+        tag_used,
+        args.output_dir,
+    )
     out_path = build_reframe_out_path(md_path)
 
     # Create output directory if it doesn't exist
