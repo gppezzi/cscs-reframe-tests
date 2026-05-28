@@ -9,7 +9,7 @@ The script supports **two execution modes**:
 1. **Single-system mode (original behavior)**  
    → Lists all tests selected for a given system + mode/tag.
 
-2. **Matrix mode (new)**  
+2. **Matrix mode**  
    → Generates a **cross-system and cross-mode/tag matrix view**, allowing you to see where each test is eligible to run.
 
 In both cases, the script **does not re-implement ReFrame’s selection logic**. It simply formats the already-filtered results from ReFrame.
@@ -26,7 +26,7 @@ When listing, `-L/--list-detailed` prints details (including the file where each
 
 ## Output
 
-Running the script produces output files **relative to the current working directory** (that is, the directory from which you invoke `list_tests.py`) when `--output_dir` is not provided.
+Running the script produces output files **relative to the script directory** (that is, the directory containing `list_tests.py`) when `--output_dir` is not provided.
 
 ### Single-system mode
 
@@ -36,23 +36,23 @@ Produces:
 
 ---
 
-### Matrix mode (new)
+### Matrix mode 
 
 Produces:
 - A Markdown report with:
-  - Category tables
+  - Tables of checks groupped by category
   - Matrix view (✅ / ❌)
   - Summary table
   - Timestamp
 
 ---
 
-## Usage
+## Usage examples
 
 ### Single-system mode
 
 ```bash
-python list_tests.py   -C /path/to/config.py   -c /path/to/checks   -R   --system daint   --mode maintenance
+python list_tests.py -C /path/to/config.py -c /path/to/checks -R --system daint --mode maintenance
 ```
 
 ---
@@ -60,29 +60,60 @@ python list_tests.py   -C /path/to/config.py   -c /path/to/checks   -R   --syste
 ### Matrix mode
 
 ```bash
-python3 list_tests.py --matrix-mode daint-maint:daint:maintenance --matrix-mode eiger-maint:eiger:maintenance  --matrix-mode santis-maint:santis:maintenance --matrix-mode clariden-maint:clariden:maintenance -C ../config/cscs.py -c ../checks -R
+python3 list_tests.py \
+   --matrix-mode daint-maint:daint:maintenance \
+   --matrix-mode eiger-maint:eiger:maintenance \
+   --matrix-mode santis-maint:santis:maintenance \
+   --matrix-mode clariden-maint:clariden:maintenance \
+   -C ../config/cscs.py -c ../checks -R
 ```
 
 ---
 
-## Matrix output
+## Command-line reference
 
-- One column per system/mode/tag
-- ✅ = eligible
-- ❌ = not eligible
+```
+usage: list_tests.py [-h] [--system SYSTEM] [--mode MODE] [--tag TAG]
+                     [-C CONFIG_FILES] [-c CHECK_PATHS] [-R]
+                     [--list-type {T,C}] [--exclude-related] [-f FILENAME]
+                     [-o OUTPUT_DIR] [--matrix-mode MATRIX_MODE]
+                     [--matrix-tag MATRIX_TAG]
+                     ...
 
-Includes:
+Generate Markdown report by parsing ReFrame `-L` output.
 
-- Timestamp
-- Summary table
+positional arguments:
+  extra                 Extra args passed to ReFrame after '--'
+
+options:
+  -h, --help            show this help message and exit
+  --system SYSTEM       ReFrame system name (e.g. daint)
+  --mode MODE           ReFrame execution mode (passed through)
+  --tag, --tags TAG     Tag expression to pass to ReFrame (optional)
+  -C CONFIG_FILES       ReFrame config file (repeatable: -C a.py -C b.py)
+  -c CHECK_PATHS        Check path(s) (repeatable, passed through)
+  -R                    Pass -R to ReFrame
+  --list-type {T,C}     ReFrame -L listing type: T or C.
+  --exclude-related     Exclude related rows ('^').
+  -f, --filename FILENAME
+                        Base output filename (suffixes added automatically).
+  -o, --output_dir OUTPUT_DIR
+                        Output directory for the report (default: script
+                        directory).
+  --matrix-mode MATRIX_MODE
+                        Matrix entry: label:system:mode
+  --matrix-tag MATRIX_TAG
+                        Matrix entry: label:system:tag
+```
 
 ---
 
 ## Troubleshooting
 
-### Few tests in matrix
+### Tests missing in the output
 
 - Ensure `-R` is used
+- Check reframe output for warnings (tests might be skipped)
 
 ---
 
