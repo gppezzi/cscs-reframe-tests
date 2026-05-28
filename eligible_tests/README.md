@@ -26,7 +26,7 @@ When listing, `-L/--list-detailed` prints details (including the file where each
 
 ## Output
 
-Running the script produces output files **relative to the script location** (no hardcoded directory required).
+Running the script produces output files **relative to the current working directory** (that is, the directory from which you invoke `list_tests.py`) when `--output_dir` is not provided.
 
 ### Single-system mode
 
