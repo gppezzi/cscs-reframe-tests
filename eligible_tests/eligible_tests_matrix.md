@@ -1,6 +1,6 @@
 ## Test Coverage Matrix
 
-- Generated: `2026-05-28 19:16:48 +0200`
+- Generated: `2026-05-30 10:42:01 +0200`
 
 ### apps/pytorch
 
@@ -240,7 +240,7 @@
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
 | [ddBlockSizeTest](../checks/system/io/dd_blk_size.py) | ✅ | ✅ | ✅ | ✅ |
-| [fio_compile_test](../checks/system/io/fio.py) | ❌ | ✅ | ❌ | ❌ |
+| [fio_compile_test](../checks/system/io/fio.py) | ✅ | ✅ | ✅ | ✅ |
 | [stuck_gpu_mem_test](../checks/system/io/fio.py) | ✅ | ❌ | ✅ | ✅ |
 
 ### system/network
@@ -287,4 +287,4 @@
 
 | Metric | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |--------|--------|--------|--------|--------|
-| TOTAL | 179 | 131 | 136 | 136 |
+| TOTAL | 180 | 131 | 137 | 137 |
