@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """
-Generate a Markdown report by running and parsing ReFrame `-L` (list-detailed).
+Generate a Markdown report by running and parsing ReFrame `--describe`.
 
-Why parsing?
-- `reframe -L` already applies the exact selection logic
-    (system/mode/tags/prgenv/etc.). See ReFrame docs for details:
+Why parsing JSON?
+- `reframe --describe` applies the exact selection logic
+    (system/mode/tags/prgenv/etc.) and outputs the matched tests in JSON format.
+    See ReFrame docs for details:
     https://reframe-hpc.readthedocs.io/en/v3.5.0/manpage.html
 - We simply format what ReFrame outputs, rather than
     re-implementing filtering.
 """
 
 import argparse
+import json
 import re
 import shlex
 import subprocess
@@ -101,9 +103,6 @@ def build_output_path(
 
     The filename will be: <stem>_<system>[_mode-<mode>][_tags-<tag>].md
     """
-    # Default output directory: if user provided one, use it; otherwise use
-    # the script directory (not CWD). This avoids creating nested
-    # eligible_tests/eligible_tests/ when invoked from the script folder.
     script_dir = Path(__file__).resolve().parent
     out_dir = Path(output_dir) if output_dir else script_dir
 
@@ -139,100 +138,41 @@ def build_reframe_out_path(md_path: Path) -> Path:
 
 
 # -----------------------------------------------------------------------------
-# Parsing helpers
+# Parsing helpers (JSON)
 # -----------------------------------------------------------------------------
 
-ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
-FOUND_RE = re.compile(r"(?m)^\s*Found\s+(\d+)\s+check\(s\)\.?\s*$")
-HEADER_RE = re.compile(
-    r"^\s*(?P<mark>[-^])\s+(?P<name>.+)\s*/"
-    r"(?P<hash>[0-9a-fA-F]+)\s*$"
-)
-DETAIL_RE = re.compile(
-    r"^\s+(?P<key>[A-Za-z0-9_.-]+):\s*(?P<val>.*)\s*$"
-)
-
-
-def strip_ansi(text: str) -> str:
-    return ANSI_RE.sub("", text or "")
-
-
-def parse_found_count(text: str) -> Optional[int]:
-    m = FOUND_RE.search(strip_ansi(text))
-    return int(m.group(1)) if m else None
-
-
-def strip_quotes(s: str) -> str:
-    s = (s or "").strip()
-    if len(s) >= 2 and ((s[0] == s[-1] == "'") or (s[0] == s[-1] == '"')):
-        return s[1:-1]
-    return s
-
-
-def parse_list_detailed(text: str) -> list[dict]:
+def parse_reframe_json(text: str) -> list[dict]:
     """
-    Parse ReFrame -L output into a list of items.
-    Each item contains:
-      kind: 'check' or 'related'
-      display_name: str
-      hashcode: str
-      file: str|None
-      description: str|None
+    Parse ReFrame --describe JSON output into a list of items.
     """
-    clean = strip_ansi(text)
-    lines = clean.splitlines()
+    if not text or not text.strip():
+        return []
 
-    items: list[dict] = []
-    current: Optional[dict] = None
-    last_key: Optional[str] = None
+    try:
+        # ReFrame output might contain logging info before the actual JSON array.
+        # Isolate the JSON array by finding the outermost brackets.
+        start_idx = text.find('[')
+        end_idx = text.rfind(']') + 1
+        
+        if start_idx != -1 and end_idx != 0:
+            json_str = text[start_idx:end_idx]
+            raw_items = json.loads(json_str)
+        else:
+            raw_items = json.loads(text)
+            
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse ReFrame JSON output: {e}\nOutput was: {text[:300]}...")
 
-    def flush():
-        nonlocal current
-        if current:
-            items.append(current)
-            current = None
-
-    for line in lines:
-        hm = HEADER_RE.match(line)
-        if hm:
-            flush()
-            mark = hm.group("mark")
-            current = {
-                "kind": "check" if mark == "-" else "related",
-                "display_name": hm.group("name").strip(),
-                "hashcode": hm.group("hash").strip(),
-                "file": None,
-                "description": None,
-            }
-            last_key = None
-            continue
-
-        if not current:
-            continue
-
-        dm = DETAIL_RE.match(line)
-        if dm:
-            key = dm.group("key").strip().lower()
-            val = dm.group("val").rstrip()
-
-            if key == "file":
-                current["file"] = strip_quotes(val.strip())
-                last_key = "file"
-            elif key in ("description", "descr"):
-                current["description"] = val.strip()
-                last_key = "description"
-            else:
-                last_key = None
-            continue
-
-        # continuation for wrapped description lines
-        if last_key == "description" and line.startswith(" "):
-            cont = line.strip()
-            if cont:
-                prefix = (current["description"] or "").rstrip()
-                current["description"] = prefix + " " + cont
-
-    flush()
+    items = []
+    for item in raw_items:
+        items.append({
+            "kind": "check",
+            "display_name": item.get("display_name", ""),
+            "hashcode": item.get("hashcode", ""),
+            "file": item.get("@file", ""),
+            "description": item.get("descr", ""),
+        })
+        
     return items
 
 
@@ -252,11 +192,7 @@ def normalize_table_cell(text: str | None) -> str:
 
 
 def split_name_and_params(name: str) -> tuple[str, list[str]]:
-    """Extract %param=value tokens from display_name.
-
-    Capture parameter values more robustly so values containing spaces or
-    special chars aren't truncated. We capture up to the next ' %' boundary.
-    """
+    """Extract %param=value tokens from display_name."""
     s = (name or "").strip()
     if not s:
         return "—", []
@@ -364,8 +300,7 @@ def write_markdown(items: list[dict],
                    system: str,
                    mode: Optional[str],
                    tag: Optional[str],
-                   found_count: Optional[int],
-                   exclude_related: bool):
+                   found_count: Optional[int]):
     lines = [
         f"## Eligible ReFrame Tests on {system}",
         "",
@@ -376,9 +311,6 @@ def write_markdown(items: list[dict],
     ]
 
     for it in items:
-        if exclude_related and it["kind"] == "related":
-            continue
-
         file_path = it.get("file")
         display = it.get("display_name") or "—"
         name_cell = test_name_cell(display, it["kind"], file_path)
@@ -394,16 +326,10 @@ def write_markdown(items: list[dict],
 def run_matrix_mode(args):
     """
     Matrix mode: build a cross-system view of eligible tests.
-
-    New behavior:
-    - Runs multiple `reframe -L` calls
-    - Aggregates results into a matrix
-    - Groups by category
     """
 
     print("[INFO] Running matrix mode")
 
-    # Reuse original base args construction
     base_args = []
 
     for c in args.config_files:
@@ -451,21 +377,16 @@ def run_matrix_mode(args):
         print(f"[INFO] Collecting target: {label}")
         print(f"       system={system}, mode={mode}, tag={tag}")
 
-        cmd = ["-L", args.list_type, "--system", system]
+        cmd = ["--describe", "--system", system]
         if mode:
             cmd += ["-m", mode]
         if tag:
             cmd += ["--tag", tag]
 
-        # Normalize extra args: strip a leading '--' if provided, to avoid
-        # passing the literal separator to ReFrame. Make a copy so we don't
-        # mutate the original.
         extra = list(args.extra or [])
         if extra and extra[0] == "--":
             extra = extra[1:]
 
-        # Remove any --tag/--tags entries from `extra` to avoid duplicate
-        # tag arguments when we append an explicit --tag later.
         cleaned_extra = []
         skip_next = False
         for i, e in enumerate(extra):
@@ -479,7 +400,6 @@ def run_matrix_mode(args):
                 continue
             cleaned_extra.append(e)
 
-        # Print full command for debugging.
         full_cmd = ["reframe"] + base_args + cmd + cleaned_extra
         print("[CMD] " + " ".join(full_cmd))
 
@@ -495,7 +415,7 @@ def run_matrix_mode(args):
                 print(err)
             continue
 
-        items = parse_list_detailed(out)
+        items = parse_reframe_json(out)
 
         for item in items:
             name = item["display_name"]
@@ -507,7 +427,7 @@ def run_matrix_mode(args):
             matrix[name][label] = True
 
     # -------------------------------------------
-    # Group tests by category (reuse original helpers)
+    # Group tests by category
     # -------------------------------------------
     categories = {}
 
@@ -518,7 +438,7 @@ def run_matrix_mode(args):
         categories.setdefault(cat, []).append(name)
 
     # -------------------------------------------
-    # Output path (reuse original naming logic)
+    # Output path
     # -------------------------------------------
     output_path = build_output_path(
         args.filename,
@@ -533,8 +453,6 @@ def run_matrix_mode(args):
     # -------------------------------------------
     # Build markdown
     # -------------------------------------------
-    from datetime import datetime
-
     ts = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z")
 
     lines = [
@@ -581,14 +499,12 @@ def run_matrix_mode(args):
     lines.append("### Summary")
     lines.append("")
 
-    # Header
     summary_header = "| Metric | " + " | ".join(labels) + " |"
     summary_sep = "|--------|" + "--------|" * len(labels)
 
     lines.append(summary_header)
     lines.append(summary_sep)
 
-    # Data row
     summary_row = (
         "| TOTAL | "
         + " | ".join(str(totals[label]) for label in labels)
@@ -609,7 +525,7 @@ def run_matrix_mode(args):
 def main():
     ap = argparse.ArgumentParser(
         description=(
-            "Generate Markdown report by parsing ReFrame `-L` output."
+            "Generate Markdown report by parsing ReFrame `--describe` JSON output."
         )
     )
     ap.add_argument("--system", help="ReFrame system name (e.g. daint)")
@@ -626,17 +542,6 @@ def main():
                     help="Check path(s) (repeatable, passed through)")
     ap.add_argument("-R", dest="recursive", action="store_true",
                     help="Pass -R to ReFrame")
-    ap.add_argument(
-        "--list-type",
-        choices=["T", "C"],
-        default="T",
-        help="ReFrame -L listing type: T or C.",
-    )
-    ap.add_argument(
-        "--exclude-related",
-        action="store_true",
-        help="Exclude related rows ('^').",
-    )
     ap.add_argument(
         "-f",
         "--filename",
@@ -672,7 +577,7 @@ def main():
         )
 
     # -------------------------------------------
-    # MATRIX MODE (NEW)
+    # MATRIX MODE
     # -------------------------------------------
     if args.matrix_mode or args.matrix_tag:
         run_matrix_mode(args)
@@ -680,8 +585,8 @@ def main():
 
     tag_used = args.tag if args.tag else extract_tag_from_extra(extra)
 
-    # Build ReFrame args
-    reframe_args: list[str] = ["-L", args.list_type]
+    # Build ReFrame args using --describe instead of -L
+    reframe_args: list[str] = ["--describe"]
     for cf in args.config_files:
         reframe_args.extend(["-C", cf])
     for cp in args.check_paths:
@@ -692,7 +597,6 @@ def main():
     if args.mode:
         reframe_args.extend(["--mode", args.mode])
     if tag_used:
-        # Preserve regex-like expressions when passing tags to ReFrame.
         reframe_args.append(f"--tag={tag_used}")
     reframe_args.extend(extra)
 
@@ -719,14 +623,12 @@ def main():
     )
     out_path = build_reframe_out_path(md_path)
 
-    # Create output directory if it doesn't exist
     md_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Save raw ReFrame output alongside the Markdown report
     out_path.write_text(combined, encoding="utf-8")
 
-    found = parse_found_count(combined)
-    items = parse_list_detailed(combined)
+    # Parse JSON output and determine count
+    items = parse_reframe_json(out)
+    found = len(items)
 
     write_markdown(
         items=items,
@@ -734,14 +636,12 @@ def main():
         system=args.system,
         mode=args.mode,
         tag=tag_used,
-        found_count=found,
-        exclude_related=args.exclude_related
+        found_count=found
     )
 
     print(f"Markdown written to {md_path}")
     print(f"ReFrame output saved to {out_path}")
-    if found is not None:
-        print(f"Checks (ReFrame footer): {found}")
+    print(f"Checks (ReFrame --describe): {found}")
 
 
 if __name__ == "__main__":

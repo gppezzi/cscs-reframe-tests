@@ -1,5 +1,16 @@
 # Changelog
 
+All notable changes to `list_tests.py` are documented here.
+
+---
+
+## [1.1.0] - 2026-05-30
+
+### Changed
+- Swapped fragile `reframe -L` textual/regex stdout parsing for native `reframe --describe` JSON serialization.
+- Replaced custom stateful line matching with robust `json.loads()` processing, successfully addressing edge cases involving cropped or multi-line wrapped descriptions.
+- Removed obsolete `--list-type` and `--exclude-related` CLI options since `--describe` strictly lists selected checks natively without tree entities.
+
 ---
 
 ## [1.0.0] - 2026-05-28
@@ -43,6 +54,7 @@
 - Used generic `--target` CLI (later replaced)
 - Partial formatting differences with original script
 
+
 ---
 
 ## [< 0.9.0] - Initial versions
@@ -57,4 +69,5 @@
 - Raw `.reframe.out` output capture
 
 ### Design principle
-- Reuse ReFrame’s check selection logic (instead of reimplementing filtering using ReFrame's API)
+- Reuse ReFrame’s selection logic instead of reimplementing filtering
+- Retrieve test data using ReFrame's JSON output from --describe
