@@ -4,6 +4,17 @@ All notable changes to `list_tests.py` are documented here.
 
 ---
 
+## [1.2.0] - 2026-06-02
+
+### Added
+- Added exact deployment mapping for local UENV recipes using `alps-uenv/config.yaml`.
+- Local UENV recipe mode now assigns `target_systems` only for systems explicitly declared in `config.yaml`.
+
+### Changed
+- Switched local UENV recipe discovery from generic global availability to explicit system mapping.
+
+---
+
 ## [1.1.1] - 2026-06-02
 
 ### Added

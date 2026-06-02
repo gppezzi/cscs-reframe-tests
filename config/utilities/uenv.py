@@ -66,6 +66,67 @@ def uenv_metadata():
         return str(_version_tag.split(" ")[0]), \
             str(_version_tag.split(" ")[1])
 
+def _load_uenv_recipes_deploy_map(recipe_dir_path: pathlib.Path) -> dict[str, list[str]]:
+    config_path = recipe_dir_path.parent / 'config.yaml'
+    if not config_path.is_file():
+        raise ConfigError(
+            f"Could not find config.yaml in {recipe_dir_path.parent}"
+        )
+
+    try:
+        with open(config_path) as cfg:
+            cfg_data = yaml.safe_load(cfg)
+    except OSError as err:
+        raise ConfigError(
+            f"Cannot read {config_path}: {err}"
+        )
+    except yaml.YAMLError as err:
+        raise ConfigError(
+            f"Cannot parse {config_path}: {err}"
+        )
+
+    if not isinstance(cfg_data, dict):
+        return {}
+
+    uenvs = cfg_data.get('uenvs', {})
+    if not isinstance(uenvs, dict):
+        return {}
+
+    recipe_to_systems: dict[str, list[str]] = {}
+    for product, versions in uenvs.items():
+        if not isinstance(versions, dict):
+            continue
+
+        for version, desc in versions.items():
+            if not isinstance(desc, dict):
+                continue
+
+            recipes = desc.get('recipes', {})
+            deploy = desc.get('deploy', {})
+            if not isinstance(recipes, dict) or not isinstance(deploy, dict):
+                continue
+
+            for system, variants in deploy.items():
+                variant_list = []
+                if isinstance(variants, list):
+                    variant_list = variants
+                elif isinstance(variants, str):
+                    variant_list = [variants]
+                else:
+                    continue
+
+                for variant in variant_list:
+                    recipe_subpath = recipes.get(variant)
+                    if not recipe_subpath:
+                        continue
+
+                    full_path = pathlib.Path(product) / str(recipe_subpath)
+                    key = full_path.as_posix()
+                    recipe_to_systems.setdefault(key, []).append(system)
+
+    return recipe_to_systems
+
+
 def _load_uenvs_from_recipes(recipe_dir: str) -> list[dict]:
     recipe_dir_path = pathlib.Path(recipe_dir).expanduser().resolve()
     if not recipe_dir_path.is_dir():
@@ -74,6 +135,7 @@ def _load_uenvs_from_recipes(recipe_dir: str) -> list[dict]:
             f"{recipe_dir}"
         )
 
+    recipe_deploy_map = _load_uenv_recipes_deploy_map(recipe_dir_path)
     uenv_environments = []
     for rfm_meta in recipe_dir_path.rglob('extra/reframe.yaml'):
         recipe_root = rfm_meta.parent.parent
@@ -94,11 +156,17 @@ def _load_uenvs_from_recipes(recipe_dir: str) -> list[dict]:
         if not isinstance(image_environments, dict):
             continue
 
+        recipe_root = rfm_meta.parent.parent
+        relative_recipe_path = recipe_root.relative_to(recipe_dir_path).as_posix()
+        target_systems = recipe_deploy_map.get(relative_recipe_path, [])
+        if not target_systems:
+            continue
+
         for k, v in image_environments.items():
             if not isinstance(v, dict):
                 continue
 
-            env = {'target_systems': ['*']}
+            env = {'target_systems': target_systems}
             env.update(v)
 
             activation = env.pop('activation', [])

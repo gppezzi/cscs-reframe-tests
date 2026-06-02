@@ -68,6 +68,20 @@ python3 list_tests.py \
 
 ---
 
+### Local UENV recipe mode
+
+If you need to list UENV-enabled tests without installed uenv images, use a local recipe tree. Example:
+
+```bash
+python3 list_tests.py \
+  --uenv-recipes-dir /Users/perettig/cscs/testing/alps-uenv/recipes \
+  -C ../config/cscs.py -c ../checks -R --system daint --tag uenv
+```
+
+This sets `RFM_UENV_RECIPES_DIR` for the ReFrame subprocess and loads UENV metadata from local `extra/reframe.yaml` files.
+
+---
+
 ## Command-line reference
 
 ```
@@ -95,6 +109,9 @@ options:
   -o, --output_dir OUTPUT_DIR
                         Output directory for the report (default: script
                         directory).
+  --uenv-recipes-dir UENV_RECIPES_DIR
+                        Path to local UENV recipe metadata for listing
+                        UENV tests without installed uenv images.
   --matrix-mode MATRIX_MODE
                         Matrix entry: label:system:mode
   --matrix-tag MATRIX_TAG
