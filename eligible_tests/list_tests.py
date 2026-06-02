@@ -359,6 +359,10 @@ def run_matrix_mode(args, env: dict[str, str] | None = None):
                 raise ValueError("--matrix-mode requires label:system:mode")
 
             label, system, mode = parts
+            if label in labels:
+                raise ValueError(
+                    f"duplicate label '{label}' in --matrix-mode/--matrix-tag"
+                )
             targets.append((label, system, mode, None))
             labels.append(label)
 
@@ -369,6 +373,10 @@ def run_matrix_mode(args, env: dict[str, str] | None = None):
                 raise ValueError("--matrix-tag requires label:system:tag")
 
             label, system, tag = parts
+            if label in labels:
+                raise ValueError(
+                    f"duplicate label '{label}' in --matrix-mode/--matrix-tag"
+                )
             targets.append((label, system, None, tag))
             labels.append(label)
 
