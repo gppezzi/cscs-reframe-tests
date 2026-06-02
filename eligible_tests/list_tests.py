@@ -13,6 +13,7 @@ Why parsing JSON?
 
 import argparse
 import json
+import os
 import re
 import shlex
 import subprocess
@@ -26,12 +27,16 @@ from urllib.parse import quote
 # Running ReFrame
 # -----------------------------------------------------------------------------
 
-def run_reframe(args: list[str]) -> tuple[int, str, str]:
+def run_reframe(
+    args: list[str],
+    env: dict[str, str] | None = None,
+) -> tuple[int, str, str]:
     p = subprocess.run(
         ["reframe", *args],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        text=True
+        text=True,
+        env=env or os.environ.copy(),
     )
     return p.returncode, p.stdout, p.stderr
 
@@ -323,7 +328,7 @@ def write_markdown(items: list[dict],
     output_path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def run_matrix_mode(args):
+def run_matrix_mode(args, env: dict[str, str] | None = None):
     """
     Matrix mode: build a cross-system view of eligible tests.
     """
@@ -403,7 +408,7 @@ def run_matrix_mode(args):
         full_cmd = ["reframe"] + base_args + cmd + cleaned_extra
         print("[CMD] " + " ".join(full_cmd))
 
-        rc, out, err = run_reframe(base_args + cmd + cleaned_extra)
+        rc, out, err = run_reframe(base_args + cmd + cleaned_extra, env=env)
 
         if rc != 0:
             msg = (
@@ -555,6 +560,14 @@ def main():
         help="Output directory for the report (default: script directory).",
     )
     ap.add_argument(
+        "--uenv-recipes-dir",
+        default=None,
+        help=(
+            "Path to local UENV recipe metadata for listing UENV tests "
+            "without installed uenv images."
+        ),
+    )
+    ap.add_argument(
         "--matrix-mode",
         action="append",
         help="Matrix entry: label:system:mode",
@@ -579,8 +592,13 @@ def main():
     # -------------------------------------------
     # MATRIX MODE
     # -------------------------------------------
+    subprocess_env = None
+    if args.uenv_recipes_dir:
+        subprocess_env = os.environ.copy()
+        subprocess_env["RFM_UENV_RECIPES_DIR"] = args.uenv_recipes_dir
+
     if args.matrix_mode or args.matrix_tag:
-        run_matrix_mode(args)
+        run_matrix_mode(args, subprocess_env)
         return
 
     tag_used = args.tag if args.tag else extract_tag_from_extra(extra)
@@ -601,7 +619,7 @@ def main():
     reframe_args.extend(extra)
 
     print("[CMD] reframe " + " ".join(shlex.quote(x) for x in reframe_args))
-    rc, out, err = run_reframe(reframe_args)
+    rc, out, err = run_reframe(reframe_args, env=subprocess_env)
     combined = (out or "") + "\n" + (err or "")
 
     if rc != 0:

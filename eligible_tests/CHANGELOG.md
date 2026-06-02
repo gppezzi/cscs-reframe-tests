@@ -4,6 +4,14 @@ All notable changes to `list_tests.py` are documented here.
 
 ---
 
+## [1.1.1] - 2026-06-02
+
+### Added
+- Added `--uenv-recipes-dir` option to list UENV-enabled tests from local recipe metadata without installed uenv images.
+- Local recipe mode is enabled by setting `RFM_UENV_RECIPES_DIR` for ReFrame subprocesses.
+
+---
+
 ## [1.1.0] - 2026-05-30
 
 ### Changed

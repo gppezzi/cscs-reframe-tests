@@ -14,6 +14,7 @@ _UENV_DELIMITER = ','
 _UENV_MOUNT_DELIMITER = '@'
 _RFM_META = pathlib.Path('extra') / 'reframe.yaml'
 _RFM_META_DIR = pathlib.Path('meta')
+UENV_RECIPES_ENVVAR = 'RFM_UENV_RECIPES_DIR'
 
 
 def uarch(partition):
@@ -65,8 +66,81 @@ def uenv_metadata():
         return str(_version_tag.split(" ")[0]), \
             str(_version_tag.split(" ")[1])
 
+def _load_uenvs_from_recipes(recipe_dir: str) -> list[dict]:
+    recipe_dir_path = pathlib.Path(recipe_dir).expanduser().resolve()
+    if not recipe_dir_path.is_dir():
+        raise ConfigError(
+            f"{UENV_RECIPES_ENVVAR} path is not a directory: "
+            f"{recipe_dir}"
+        )
+
+    uenv_environments = []
+    for rfm_meta in recipe_dir_path.rglob('extra/reframe.yaml'):
+        recipe_root = rfm_meta.parent.parent
+        uenv_name = recipe_root.relative_to(recipe_dir_path).as_posix()
+        uenv_name_pretty = uenv_name.replace('/', '_').replace(':', '_')
+
+        try:
+            with open(rfm_meta) as image_envs:
+                image_environments = yaml.load(
+                    image_envs.read(), Loader=yaml.BaseLoader)
+        except OSError as err:
+            print(
+                f'Skipping local uenv recipe `{rfm_meta}`, there was an error '
+                f'reading the metadata: {err}'
+            )
+            continue
+
+        if not isinstance(image_environments, dict):
+            continue
+
+        for k, v in image_environments.items():
+            if not isinstance(v, dict):
+                continue
+
+            env = {'target_systems': ['*']}
+            env.update(v)
+
+            activation = env.pop('activation', [])
+            views = env.pop('views', [])
+
+            if isinstance(activation, list):
+                env['prepare_cmds'] = activation
+            elif isinstance(activation, str):
+                env['prepare_cmds'] = [f'source {activation}']
+            else:
+                raise ConfigError(
+                    'activation has to be a list of commands to be '
+                    'executed to configure the environment'
+                )
+
+            features = env.get('features', [])
+            if isinstance(features, str):
+                features = [features]
+            env['features'] = list(features) + ['uenv']
+
+            env['name'] = f'{uenv_name_pretty}_{k}'
+            env['resources'] = {
+                'uenv': {
+                    'file': str(recipe_root),
+                    'mount': None,
+                    'uenv': str(recipe_root),
+                }
+            }
+            if views:
+                env['resources']['uenv_views'] = {
+                    'views': ','.join(views)
+                }
+
+            uenv_environments.append(env)
+
+    return uenv_environments
 
 def _get_uenvs():
+    recipes_dir = os.environ.get(UENV_RECIPES_ENVVAR, None)
+    if recipes_dir:
+        return _load_uenvs_from_recipes(recipes_dir)
+
     uenv = os.environ.get('UENV', None)
     if uenv is None:
         return uenv
