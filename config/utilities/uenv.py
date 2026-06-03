@@ -15,7 +15,12 @@ _UENV_MOUNT_DELIMITER = '@'
 _RFM_META = pathlib.Path('extra') / 'reframe.yaml'
 _RFM_META_DIR = pathlib.Path('meta')
 UENV_RECIPES_ENVVAR = 'RFM_UENV_RECIPES_DIR'
+UENV_IMAGE_INVENTORY_ENVVAR = 'RFM_UENV_IMAGE_INVENTORY'
+UENV_TARGET_SYSTEMS_ENVVAR = 'RFM_UENV_TARGET_SYSTEMS'
 
+# Environment variable used to explicitly request UENV image inventory
+# queries for one or more target systems. This avoids relying on the
+# CLI's implicit default filtering behavior.
 
 def uarch(partition):
     """
@@ -66,65 +71,114 @@ def uenv_metadata():
         return str(_version_tag.split(" ")[0]), \
             str(_version_tag.split(" ")[1])
 
-def _load_uenv_recipes_deploy_map(recipe_dir_path: pathlib.Path) -> dict[str, list[str]]:
-    config_path = recipe_dir_path.parent / 'config.yaml'
-    if not config_path.is_file():
+def _load_uenv_image_inventory(path: str | None = None) -> list[dict]:
+    # Load UENV inventory from a provided JSON file or from the UENV CLI.
+    # When no inventory file is configured, prefer explicit per-system
+    # queries with '@<system>' rather than relying on the default CLI
+    # filtering or config.yaml mappings, which are not reliable.
+    if path:
+        inventory_file = pathlib.Path(path).expanduser().resolve()
+        if not inventory_file.is_file():
+            raise ConfigError(
+                f"{UENV_IMAGE_INVENTORY_ENVVAR} path is not a file: "
+                f"{path}"
+            )
+        try:
+            with open(inventory_file, encoding='utf-8') as f:
+                inventory = json.load(f)
+        except OSError as err:
+            raise ConfigError(
+                f"Cannot read inventory file {inventory_file}: {err}"
+            )
+        except json.JSONDecodeError as err:
+            raise ConfigError(
+                f"Cannot parse inventory file {inventory_file}: {err}"
+            )
+    else:
+        # If the caller set a target-systems envvar, query uenv per-system
+        # using the '@system' syntax to avoid the CLI default filtering.
+        # This is the preferred path for multi-system availability checks.
+        target_systems = os.environ.get(UENV_TARGET_SYSTEMS_ENVVAR)
+        if target_systems:
+            records: list[dict] = []
+            seen: set[str] = set()
+            for sys in [s.strip() for s in target_systems.split(',') if s.strip()]:
+                cmd = f"{_UENV_CLI} image find --json @{sys}"
+                output = osext.run_command(cmd, shell=True).stdout
+                try:
+                    inv = json.loads(output)
+                except json.JSONDecodeError as err:
+                    raise ConfigError(
+                        f"Cannot parse JSON from '{cmd}': {err}"
+                    )
+                recs = inv.get('records') if isinstance(inv, dict) else None
+                if isinstance(recs, list):
+                    for r in recs:
+                        if not isinstance(r, dict):
+                            continue
+                        record_key = json.dumps(r, sort_keys=True)
+                        if record_key in seen:
+                            continue
+                        seen.add(record_key)
+                        records.append(r)
+            inventory = {'records': records}
+        else:
+            cluster_name = os.environ.get('CLUSTER_NAME')
+            if cluster_name:
+                cmd = f"{_UENV_CLI} image find --json @{cluster_name}"
+            else:
+                cmd = f"{_UENV_CLI} image find --json"
+            output = osext.run_command(cmd, shell=True).stdout
+            try:
+                inventory = json.loads(output)
+            except json.JSONDecodeError as err:
+                raise ConfigError(
+                    f"Cannot parse JSON from '{cmd}': {err}"
+                )
+
+    if not isinstance(inventory, dict):
         raise ConfigError(
-            f"Could not find config.yaml in {recipe_dir_path.parent}"
+            f"Invalid UENV inventory JSON: expected object, got {type(inventory).__name__}"
         )
 
-    try:
-        with open(config_path) as cfg:
-            cfg_data = yaml.safe_load(cfg)
-    except OSError as err:
+    records = inventory.get('records')
+    if not isinstance(records, list):
         raise ConfigError(
-            f"Cannot read {config_path}: {err}"
-        )
-    except yaml.YAMLError as err:
-        raise ConfigError(
-            f"Cannot parse {config_path}: {err}"
+            "Invalid UENV inventory JSON: missing 'records' list"
         )
 
-    if not isinstance(cfg_data, dict):
-        return {}
+    return [r for r in records if isinstance(r, dict)]
 
-    uenvs = cfg_data.get('uenvs', {})
-    if not isinstance(uenvs, dict):
-        return {}
 
-    recipe_to_systems: dict[str, list[str]] = {}
-    for product, versions in uenvs.items():
-        if not isinstance(versions, dict):
+def _recipe_target_systems(
+    recipe_root: pathlib.Path,
+    recipe_dir_path: pathlib.Path,
+    inventory_records: list[dict],
+) -> list[str]:
+    relative_recipe_path = recipe_root.relative_to(recipe_dir_path).as_posix()
+    parts = relative_recipe_path.split('/')
+
+    if len(parts) < 2:
+        return []
+
+    recipe_name = parts[0]
+    recipe_version = parts[1]
+    recipe_uarch = parts[2] if len(parts) > 2 else None
+
+    systems: set[str] = set()
+    for record in inventory_records:
+        if record.get('name') != recipe_name:
+            continue
+        if recipe_version and record.get('version') != recipe_version:
+            continue
+        if recipe_uarch and record.get('uarch') != recipe_uarch:
             continue
 
-        for version, desc in versions.items():
-            if not isinstance(desc, dict):
-                continue
+        system = record.get('system')
+        if isinstance(system, str) and system:
+            systems.add(system)
 
-            recipes = desc.get('recipes', {})
-            deploy = desc.get('deploy', {})
-            if not isinstance(recipes, dict) or not isinstance(deploy, dict):
-                continue
-
-            for system, variants in deploy.items():
-                variant_list = []
-                if isinstance(variants, list):
-                    variant_list = variants
-                elif isinstance(variants, str):
-                    variant_list = [variants]
-                else:
-                    continue
-
-                for variant in variant_list:
-                    recipe_subpath = recipes.get(variant)
-                    if not recipe_subpath:
-                        continue
-
-                    full_path = pathlib.Path(product) / str(recipe_subpath)
-                    key = full_path.as_posix()
-                    recipe_to_systems.setdefault(key, []).append(system)
-
-    return recipe_to_systems
+    return sorted(systems)
 
 
 def _load_uenvs_from_recipes(recipe_dir: str) -> list[dict]:
@@ -135,15 +189,17 @@ def _load_uenvs_from_recipes(recipe_dir: str) -> list[dict]:
             f"{recipe_dir}"
         )
 
-    recipe_deploy_map = _load_uenv_recipes_deploy_map(recipe_dir_path)
+    inventory_path = os.environ.get(UENV_IMAGE_INVENTORY_ENVVAR)
+    inventory_records = _load_uenv_image_inventory(inventory_path)
     uenv_environments = []
+
     for rfm_meta in recipe_dir_path.rglob('extra/reframe.yaml'):
         recipe_root = rfm_meta.parent.parent
         uenv_name = recipe_root.relative_to(recipe_dir_path).as_posix()
         uenv_name_pretty = uenv_name.replace('/', '_').replace(':', '_')
 
         try:
-            with open(rfm_meta) as image_envs:
+            with open(rfm_meta, encoding='utf-8') as image_envs:
                 image_environments = yaml.load(
                     image_envs.read(), Loader=yaml.BaseLoader)
         except OSError as err:
@@ -156,9 +212,9 @@ def _load_uenvs_from_recipes(recipe_dir: str) -> list[dict]:
         if not isinstance(image_environments, dict):
             continue
 
-        recipe_root = rfm_meta.parent.parent
-        relative_recipe_path = recipe_root.relative_to(recipe_dir_path).as_posix()
-        target_systems = recipe_deploy_map.get(relative_recipe_path, [])
+        target_systems = _recipe_target_systems(
+            recipe_root, recipe_dir_path, inventory_records
+        )
         if not target_systems:
             continue
 

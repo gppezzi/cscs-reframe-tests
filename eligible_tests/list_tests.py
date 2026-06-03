@@ -30,14 +30,48 @@ from urllib.parse import quote
 def run_reframe(
     args: list[str],
     env: dict[str, str] | None = None,
+    verbose: bool = False,
 ) -> tuple[int, str, str]:
-    p = subprocess.run(
-        ["reframe", *args],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        env=env or os.environ.copy(),
-    )
+    full_cmd = ["reframe", *args]
+    if verbose:
+        print(f"[DEBUG] Running command: {' '.join(full_cmd)}", flush=True)
+    
+    # Print environment variables if uenv-related ones are set
+    if env and verbose:
+        uenv_vars = {k: v for k, v in env.items() if 'UENV' in k or 'RFM' in k}
+        if uenv_vars:
+            print("[DEBUG] Environment variables set:", flush=True)
+            for k, v in sorted(uenv_vars.items()):
+                print(f"        {k}={v}", flush=True)
+    
+    try:
+        p = subprocess.run(
+            full_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env=env or os.environ.copy(),
+        )
+    except FileNotFoundError as e:
+        print(f"\n[ERROR] Could not find 'reframe' command in PATH", flush=True)
+        print(f"[ERROR] Error: {e}", flush=True)
+        print(f"[DEBUG] Current PATH: {(env or os.environ).get('PATH', '(not set)')}", flush=True)
+        raise SystemExit(
+            f"ERROR: Could not find 'reframe' command in PATH.\n"
+            f"Make sure ReFrame is installed and activated in your environment.\n"
+            f"Current PATH: {(env or os.environ).get('PATH', '(not set)')}"
+        )
+    
+    if verbose:
+        print(f"[DEBUG] Return code: {p.returncode}", flush=True)
+        print(f"[DEBUG] STDOUT length: {len(p.stdout)} chars", flush=True)
+        print(f"[DEBUG] STDERR length: {len(p.stderr)} chars", flush=True)
+        
+        if p.stdout:
+            print(f"[DEBUG] STDOUT (first 500 chars):\n{p.stdout[:500]}", flush=True)
+        if p.stderr:
+            print(f"[DEBUG] STDERR (first 500 chars):\n{p.stderr[:500]}", flush=True)
+    
     return p.returncode, p.stdout, p.stderr
 
 
@@ -146,12 +180,18 @@ def build_reframe_out_path(md_path: Path) -> Path:
 # Parsing helpers (JSON)
 # -----------------------------------------------------------------------------
 
-def parse_reframe_json(text: str) -> list[dict]:
+def parse_reframe_json(text: str, verbose: bool = False) -> list[dict]:
     """
     Parse ReFrame --describe JSON output into a list of items.
     """
     if not text or not text.strip():
+        if verbose:
+            print("[DEBUG] parse_reframe_json: Empty or whitespace-only input", flush=True)
         return []
+
+    if verbose:
+        print(f"[DEBUG] parse_reframe_json: Input length = {len(text)} chars", flush=True)
+        print(f"[DEBUG] parse_reframe_json: First 200 chars: {text[:200]}", flush=True)
 
     try:
         # ReFrame output might contain logging info before the actual JSON array.
@@ -159,24 +199,40 @@ def parse_reframe_json(text: str) -> list[dict]:
         start_idx = text.find('[')
         end_idx = text.rfind(']') + 1
         
+        if verbose:
+            print(f"[DEBUG] parse_reframe_json: Found '[' at {start_idx}, ']' at {end_idx-1}", flush=True)
+        
         if start_idx != -1 and end_idx != 0:
             json_str = text[start_idx:end_idx]
+            if verbose:
+                print(f"[DEBUG] parse_reframe_json: Extracted JSON is {len(json_str)} chars", flush=True)
             raw_items = json.loads(json_str)
         else:
+            if verbose:
+                print(f"[DEBUG] parse_reframe_json: No brackets found, parsing entire text", flush=True)
             raw_items = json.loads(text)
+        
+        if verbose:
+            print(f"[DEBUG] parse_reframe_json: Parsed {len(raw_items)} items from JSON", flush=True)
             
     except json.JSONDecodeError as e:
-        raise ValueError(f"Failed to parse ReFrame JSON output: {e}\nOutput was: {text[:300]}...")
+        print(f"[ERROR] JSON parse error: {e}", flush=True)
+        print(f"[ERROR] Error at line {e.lineno}, col {e.colno}", flush=True)
+        print(f"[ERROR] Text around error: {text[max(0, e.pos-100):e.pos+100]}", flush=True)
+        raise ValueError(f"Failed to parse ReFrame JSON output: {e}\nOutput was: {text[:500]}...")
 
     items = []
-    for item in raw_items:
-        items.append({
+    for i, item in enumerate(raw_items):
+        parsed_item = {
             "kind": "check",
             "display_name": item.get("display_name", ""),
             "hashcode": item.get("hashcode", ""),
             "file": item.get("@file", ""),
             "description": item.get("descr", ""),
-        })
+        }
+        if verbose:
+            print(f"[DEBUG] Item {i}: {parsed_item['display_name']}", flush=True)
+        items.append(parsed_item)
         
     return items
 
@@ -391,6 +447,8 @@ def run_matrix_mode(args, env: dict[str, str] | None = None):
         print(f"       system={system}, mode={mode}, tag={tag}")
 
         cmd = ["--describe", "--system", system]
+        if args.verbose:
+            cmd.insert(1, "-v")
         if mode:
             cmd += ["-m", mode]
         if tag:
@@ -416,7 +474,7 @@ def run_matrix_mode(args, env: dict[str, str] | None = None):
         full_cmd = ["reframe"] + base_args + cmd + cleaned_extra
         print("[CMD] " + " ".join(full_cmd))
 
-        rc, out, err = run_reframe(base_args + cmd + cleaned_extra, env=env)
+        rc, out, err = run_reframe(base_args + cmd + cleaned_extra, env=env, verbose=args.verbose)
 
         if rc != 0:
             msg = (
@@ -425,10 +483,14 @@ def run_matrix_mode(args, env: dict[str, str] | None = None):
             )
             print(msg)
             if err:
-                print(err)
+                print("[ERROR] STDERR output:", flush=True)
+                print(err, flush=True)
+            if out:
+                print("[ERROR] STDOUT output (first 500 chars):", flush=True)
+                print(out[:500], flush=True)
             continue
 
-        items = parse_reframe_json(out)
+        items = parse_reframe_json(out, verbose=args.verbose)
 
         for item in items:
             name = item["display_name"]
@@ -576,6 +638,15 @@ def main():
         ),
     )
     ap.add_argument(
+        "--uenv-image-inventory",
+        default=None,
+        help=(
+            "Path to a UENV image inventory JSON file produced by "
+            "`uenv image find --json`. This is used to map local recipe "
+            "metadata to available target systems."
+        ),
+    )
+    ap.add_argument(
         "--matrix-mode",
         action="append",
         help="Matrix entry: label:system:mode",
@@ -584,6 +655,12 @@ def main():
         "--matrix-tag",
         action="append",
         help="Matrix entry: label:system:tag",
+    )
+    ap.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Pass -v to ReFrame for verbose output (useful for debugging)",
     )
     ap.add_argument("extra", nargs=argparse.REMAINDER,
                     help="Extra args passed to ReFrame after '--'")
@@ -597,13 +674,67 @@ def main():
             "--system is required unless using --matrix-mode or --matrix-tag"
         )
 
+    if args.uenv_image_inventory and not args.uenv_recipes_dir:
+        raise SystemExit(
+            "--uenv-image-inventory requires --uenv-recipes-dir"
+        )
+
+    # Validate uenv file paths
+    if args.uenv_recipes_dir:
+        recipes_path = Path(args.uenv_recipes_dir)
+        if not recipes_path.exists():
+            raise SystemExit(
+                f"ERROR: --uenv-recipes-dir path does not exist: {args.uenv_recipes_dir}\n"
+                f"Absolute path: {recipes_path.resolve()}"
+            )
+        print(f"[INFO] UENV recipes dir: {recipes_path.resolve()}")
+
+    if args.uenv_image_inventory:
+        inv_path = Path(args.uenv_image_inventory)
+        if not inv_path.exists():
+            raise SystemExit(
+                f"ERROR: --uenv-image-inventory path does not exist: {args.uenv_image_inventory}\n"
+                f"Absolute path: {inv_path.resolve()}"
+            )
+        print(f"[INFO] UENV image inventory: {inv_path.resolve()}")
+
     # -------------------------------------------
     # MATRIX MODE
     # -------------------------------------------
     subprocess_env = None
-    if args.uenv_recipes_dir:
+    if args.uenv_recipes_dir or args.uenv_image_inventory:
         subprocess_env = os.environ.copy()
-        subprocess_env["RFM_UENV_RECIPES_DIR"] = args.uenv_recipes_dir
+        if args.uenv_recipes_dir:
+            recipes_abs = Path(args.uenv_recipes_dir).resolve()
+            subprocess_env["RFM_UENV_RECIPES_DIR"] = str(recipes_abs)
+            if args.verbose:
+                print(f"[DEBUG] Setting RFM_UENV_RECIPES_DIR={recipes_abs}")
+        if args.uenv_image_inventory:
+            inv_abs = Path(args.uenv_image_inventory).resolve()
+            subprocess_env["RFM_UENV_IMAGE_INVENTORY"] = str(inv_abs)
+            if args.verbose:
+                print(f"[DEBUG] Setting RFM_UENV_IMAGE_INVENTORY={inv_abs}")
+
+        if args.uenv_recipes_dir and not args.uenv_image_inventory:
+            if args.matrix_mode or args.matrix_tag:
+                systems = []
+                if args.matrix_mode:
+                    systems += [t.split(':')[1] for t in args.matrix_mode if ':' in t]
+                if args.matrix_tag:
+                    systems += [t.split(':')[1] for t in args.matrix_tag if ':' in t]
+                systems = [s for s in dict.fromkeys(systems) if s]
+                if systems:
+                    subprocess_env["RFM_UENV_TARGET_SYSTEMS"] = ",".join(systems)
+                    if args.verbose:
+                        print(
+                            f"[DEBUG] Setting RFM_UENV_TARGET_SYSTEMS={subprocess_env['RFM_UENV_TARGET_SYSTEMS']}"
+                        )
+            else:
+                subprocess_env["RFM_UENV_TARGET_SYSTEMS"] = args.system
+                if args.verbose:
+                    print(
+                        f"[DEBUG] Setting RFM_UENV_TARGET_SYSTEMS={args.system}"
+                    )
 
     if args.matrix_mode or args.matrix_tag:
         run_matrix_mode(args, subprocess_env)
@@ -613,6 +744,8 @@ def main():
 
     # Build ReFrame args using --describe instead of -L
     reframe_args: list[str] = ["--describe"]
+    if args.verbose:
+        reframe_args.append("-v")
     for cf in args.config_files:
         reframe_args.extend(["-C", cf])
     for cp in args.check_paths:
@@ -627,16 +760,50 @@ def main():
     reframe_args.extend(extra)
 
     print("[CMD] reframe " + " ".join(shlex.quote(x) for x in reframe_args))
-    rc, out, err = run_reframe(reframe_args, env=subprocess_env)
+    rc, out, err = run_reframe(reframe_args, env=subprocess_env, verbose=args.verbose)
     combined = (out or "") + "\n" + (err or "")
 
     if rc != 0:
+        print("\n" + "="*80, flush=True)
+        print("[ERROR] ReFrame exited with code: {}".format(rc), flush=True)
+        print("="*80, flush=True)
+        print("\n[DEBUG] Full STDOUT output:", flush=True)
+        print("-" * 40, flush=True)
+        if out:
+            print(out, flush=True)
+        else:
+            print("(empty)", flush=True)
+        print("-" * 40, flush=True)
+        print("\n[DEBUG] Full STDERR output:", flush=True)
+        print("-" * 40, flush=True)
+        if err:
+            print(err, flush=True)
+        else:
+            print("(empty)", flush=True)
+        print("-" * 40, flush=True)
+        
+        # Try to save raw output to a debug file
+        debug_out_path = Path("debug_reframe_output.log")
+        try:
+            debug_out_path.write_text(
+                f"Command: reframe {' '.join(reframe_args)}\n"
+                f"Return code: {rc}\n\n"
+                f"STDOUT:\n{out}\n\n"
+                f"STDERR:\n{err}\n",
+                encoding="utf-8"
+            )
+            print(f"\n[DEBUG] Full output saved to: {debug_out_path.resolve()}", flush=True)
+        except Exception as e:
+            print(f"\n[ERROR] Failed to save debug output: {e}", flush=True)
+        
         raise SystemExit(
             "ReFrame failed.\n\n"
             + "Command: reframe "
             + " ".join(shlex.quote(x) for x in reframe_args)
             + "\n\nSTDERR:\n"
-            + (err or "")
+            + (err or "(empty)")
+            + "\n\nSTDOUT (first 500 chars):\n"
+            + (out[:500] if out else "(empty)")
         )
 
     # Output paths
@@ -653,7 +820,7 @@ def main():
     out_path.write_text(combined, encoding="utf-8")
 
     # Parse JSON output and determine count
-    items = parse_reframe_json(out)
+    items = parse_reframe_json(out, verbose=args.verbose)
     found = len(items)
 
     write_markdown(

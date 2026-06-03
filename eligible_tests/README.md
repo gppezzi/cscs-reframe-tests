@@ -68,6 +68,15 @@ python3 list_tests.py \
 
 ---
 
+### UENV data sources
+
+This project supports two UENV retrieval modes:
+
+1. **Direct UENV CLI output on a target system** — using `uenv image find --json @<system>`, which avoids the CLI’s default local-system filtering.
+2. **Pre-generated inventory JSON** — using `generate_uenv_image_inventory.py` to build a stable inventory file that can be reused across runs.
+
+We do not rely on `config.yaml` for UENV system mapping because it is not reliable; instead, we use explicit system filters or inventory JSON.
+
 ### Local UENV recipe mode
 
 If you need to list UENV-enabled tests without installed uenv images, use a local recipe tree. Example:

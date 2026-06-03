@@ -4,6 +4,17 @@ All notable changes to `list_tests.py` are documented here.
 
 ---
 
+## [1.3.0] - 2026-06-03
+
+### Added
+- Added support for explicit per-system UENV inventory queries via `RFM_UENV_TARGET_SYSTEMS`.
+- Added merging of multiple `uenv image find --json @<system>` lookups so multi-system availability can be checked from a single run.
+- Added support for two data retrieval paths: direct UENV output on a target system, or pre-generated inventory JSON from `generate_uenv_image_inventory.py`.
+
+### Changed
+- Stopped relying on `config.yaml` for UENV recipe system mapping because it is not reliable.
+- Documented direct UENV output and inventory generator usage as the preferred retrieval options.
+
 ## [1.2.0] - 2026-06-02
 
 ### Added
