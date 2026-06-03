@@ -1,70 +1,63 @@
 ## Test Coverage Matrix
 
-- Generated: `2026-06-02 14:07:49 +0200`
+- Generated: `2026-06-03 10:07:44 +0200`
 
 ### apps/ascent
 
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
-| [uenv_ascent_cloverleaf3d](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_doublegyre_cpp](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_doublegyre_python](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_heatdiffusion_cpp](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_heatdiffusion_python](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_binning_example1 | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_extract_example1 | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_extract_example2 | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_extract_example3 | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_extract_example4 | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_first_light_example | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_pipeline_example1 | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_query_example1 | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_scene_example1 | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_scene_example2 | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_scene_example3 | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_scene_example4 | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_trigger_example1 | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_kripke](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ✅ | ✅ |
-| [uenv_ascent_noise](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ✅ | ✅ |
+| [uenv_ascent_cloverleaf3d](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_doublegyre_cpp](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_doublegyre_python](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_heatdiffusion_cpp](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_heatdiffusion_python](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_binning_example1 | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_extract_example1 | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_extract_example2 | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_extract_example3 | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_extract_example4 | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_first_light_example | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_pipeline_example1 | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_query_example1 | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_scene_example1 | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_scene_example2 | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_scene_example3 | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_scene_example4 | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_trigger_example1 | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_kripke](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ❌ | ❌ |
+| [uenv_ascent_noise](../checks/apps/ascent/ascent.py) | ✅ | ❌ | ❌ | ❌ |
 
 ### apps/cp2k
 
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
-| [Cp2kBuildTestUENV](../checks/apps/cp2k/cp2k_uenv.py) | ✅ | ✅ | ❌ | ❌ |
-| [Cp2kCheckMD_UENVCustomExec](../checks/apps/cp2k/cp2k_uenv.py) | ✅ | ✅ | ❌ | ❌ |
-| [Cp2kCheckMD_UENVExec](../checks/apps/cp2k/cp2k_uenv.py) | ✅ | ✅ | ❌ | ❌ |
-| [Cp2kCheckPBE_UENVCustomExec](../checks/apps/cp2k/cp2k_uenv.py) | ✅ | ✅ | ❌ | ❌ |
-| [Cp2kCheckPBE_UENVExec](../checks/apps/cp2k/cp2k_uenv.py) | ✅ | ✅ | ❌ | ❌ |
+| [Cp2kBuildTestUENV](../checks/apps/cp2k/cp2k_uenv.py) | ✅ | ❌ | ❌ | ❌ |
+| [Cp2kCheckMD_UENVCustomExec](../checks/apps/cp2k/cp2k_uenv.py) | ✅ | ❌ | ❌ | ❌ |
+| [Cp2kCheckMD_UENVExec](../checks/apps/cp2k/cp2k_uenv.py) | ✅ | ❌ | ❌ | ❌ |
+| [Cp2kCheckPBE_UENVCustomExec](../checks/apps/cp2k/cp2k_uenv.py) | ✅ | ❌ | ❌ | ❌ |
+| [Cp2kCheckPBE_UENVExec](../checks/apps/cp2k/cp2k_uenv.py) | ✅ | ❌ | ❌ | ❌ |
 | [Cp2kCheckRPA_UENVExec](../checks/apps/cp2k/cp2k_uenv.py) | ✅ | ❌ | ❌ | ❌ |
 
 ### apps/dummysph
 
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=binning | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=rendering | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=thresholding | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=binning | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=compositing | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=rendering | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=thresholding | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=binning | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=histsampling | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=rendering | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=thresholding | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=binning | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=compositing | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=histsampling | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=rendering | ✅ | ❌ | ✅ | ✅ |
-| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=thresholding | ✅ | ❌ | ✅ | ✅ |
-
-### apps/gromacs
-
-| Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
-|-----------|-----------|-----------|-----------|-----------|
-| [gromacs_build_test](../checks/apps/gromacs/gromacs_check.py) | ✅ | ✅ | ❌ | ❌ |
-| [gromacs_run_test](../checks/apps/gromacs/gromacs_check.py) | ✅ | ✅ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=binning | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=rendering | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=thresholding | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=binning | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=compositing | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=rendering | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=OFF<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=thresholding | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=binning | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=histsampling | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=rendering | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=OFF<br>• %test=thresholding | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=binning | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=compositing | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=histsampling | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=rendering | ✅ | ❌ | ❌ | ❌ |
+| [dummysph_uenv_ascent_single](../checks/apps/dummysph/dummysph.py)<br>• %aos=OFF<br>• %fp64=ON<br>• %tipsy=OFF<br>• %h5part=ON<br>• %test=thresholding | ✅ | ❌ | ❌ | ❌ |
 
 ### apps/icon4py
 
@@ -78,7 +71,7 @@
 |-----------|-----------|-----------|-----------|-----------|
 | [lammps_build_test](../checks/apps/lammps/lammps.py) | ✅ | ❌ | ❌ | ❌ |
 | [lammps_gpu_test](../checks/apps/lammps/lammps.py) | ✅ | ❌ | ❌ | ❌ |
-| [lammps_kokkos_test](../checks/apps/lammps/lammps.py) | ✅ | ✅ | ❌ | ❌ |
+| [lammps_kokkos_test](../checks/apps/lammps/lammps.py) | ✅ | ❌ | ❌ | ❌ |
 
 ### apps/namd
 
@@ -86,7 +79,7 @@
 |-----------|-----------|-----------|-----------|-----------|
 | [NamdBuildTestUENV](../checks/apps/namd/namd_check_uenv.py) | ✅ | ❌ | ❌ | ❌ |
 | [NamdCheckUENVCustomExec](../checks/apps/namd/namd_check_uenv.py) | ✅ | ❌ | ❌ | ❌ |
-| [NamdCheckUENVExec](../checks/apps/namd/namd_check_uenv.py) | ✅ | ✅ | ❌ | ❌ |
+| [NamdCheckUENVExec](../checks/apps/namd/namd_check_uenv.py) | ✅ | ❌ | ❌ | ❌ |
 
 ### apps/paraview
 
@@ -140,9 +133,9 @@
 
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
-| [QeBuildTestUENV](../checks/apps/quantumespresso/quantumespresso_check_uenv.py) | ✅ | ✅ | ✅ | ❌ |
-| [QeCheckAuSurfCustomExecUENV](../checks/apps/quantumespresso/quantumespresso_check_uenv.py) | ✅ | ✅ | ✅ | ❌ |
-| [QeCheckAuSurfUENVExec](../checks/apps/quantumespresso/quantumespresso_check_uenv.py) | ✅ | ✅ | ✅ | ❌ |
+| [QeBuildTestUENV](../checks/apps/quantumespresso/quantumespresso_check_uenv.py) | ✅ | ❌ | ✅ | ❌ |
+| [QeCheckAuSurfCustomExecUENV](../checks/apps/quantumespresso/quantumespresso_check_uenv.py) | ✅ | ❌ | ✅ | ❌ |
+| [QeCheckAuSurfUENVExec](../checks/apps/quantumespresso/quantumespresso_check_uenv.py) | ✅ | ❌ | ✅ | ❌ |
 
 ### apps/sphexa
 
@@ -154,11 +147,11 @@
 
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
-| [VaspBuildCheckUENV](../checks/apps/vasp/vasp_check_uenv.py)<br>• %num_nodes=1 | ✅ | ✅ | ❌ | ❌ |
-| [VaspBuildCheckUENV](../checks/apps/vasp/vasp_check_uenv.py)<br>• %num_nodes=2 | ✅ | ✅ | ❌ | ❌ |
-| [VaspBuildTestUENV](../checks/apps/vasp/vasp_check_uenv.py) | ✅ | ✅ | ❌ | ❌ |
-| [VaspCheckUENV](../checks/apps/vasp/vasp_check_uenv.py)<br>• %num_nodes=1 | ✅ | ✅ | ❌ | ❌ |
-| [VaspCheckUENV](../checks/apps/vasp/vasp_check_uenv.py)<br>• %num_nodes=2 | ✅ | ✅ | ❌ | ❌ |
+| [VaspBuildCheckUENV](../checks/apps/vasp/vasp_check_uenv.py)<br>• %num_nodes=1 | ✅ | ❌ | ❌ | ❌ |
+| [VaspBuildCheckUENV](../checks/apps/vasp/vasp_check_uenv.py)<br>• %num_nodes=2 | ✅ | ❌ | ❌ | ❌ |
+| [VaspBuildTestUENV](../checks/apps/vasp/vasp_check_uenv.py) | ✅ | ❌ | ❌ | ❌ |
+| [VaspCheckUENV](../checks/apps/vasp/vasp_check_uenv.py)<br>• %num_nodes=1 | ✅ | ❌ | ❌ | ❌ |
+| [VaspCheckUENV](../checks/apps/vasp/vasp_check_uenv.py)<br>• %num_nodes=2 | ✅ | ❌ | ❌ | ❌ |
 
 ### containers/container_engine
 
@@ -181,15 +174,13 @@
 
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
-| [dlaf_check_uenv](../checks/libraries/dlaf/dlaf.py)<br>• %test_name=eigensolver | ✅ | ✅ | ❌ | ❌ |
-| [dlaf_check_uenv](../checks/libraries/dlaf/dlaf.py)<br>• %test_name=gen_eigensolver | ✅ | ✅ | ❌ | ❌ |
+| [dlaf_check_uenv](../checks/libraries/dlaf/dlaf.py)<br>• %test_name=eigensolver | ✅ | ❌ | ❌ | ❌ |
+| [dlaf_check_uenv](../checks/libraries/dlaf/dlaf.py)<br>• %test_name=gen_eigensolver | ✅ | ❌ | ❌ | ❌ |
 
 ### libraries/io
 
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
-| [CPE_HDF5Test](../checks/libraries/io/hdf5.py)<br>• %lang=cpp | ✅ | ✅ | ❌ | ❌ |
-| [CPE_HDF5Test](../checks/libraries/io/hdf5.py)<br>• %lang=f90 | ✅ | ✅ | ❌ | ❌ |
 | [Uenv_HDF5Test](../checks/libraries/io/hdf5.py)<br>• %lang=cpp | ✅ | ✅ | ✅ | ✅ |
 | [Uenv_HDF5Test](../checks/libraries/io/hdf5.py)<br>• %lang=f90 | ✅ | ✅ | ✅ | ✅ |
 
@@ -353,28 +344,6 @@
 
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
-| [EnvVariableConfigTest](../checks/system/integration/v-cluster_config.py)<br>• %envs_info=('APPS', '/capstor/apps/cscs/daint') | ✅ | ✅ | ✅ | ✅ |
-| [EnvVariableConfigTest](../checks/system/integration/v-cluster_config.py)<br>• %envs_info=('SCRATCH', '/capstor/scratch/cscs/') | ✅ | ✅ | ✅ | ✅ |
-| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('/users', 'nfs') | ✅ | ✅ | ✅ | ✅ |
-| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('capstor/scratch/cscs', 'lustre') | ✅ | ✅ | ✅ | ✅ |
-| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('capstor/store/cscs', 'lustre') | ✅ | ✅ | ✅ | ✅ |
-| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('iopsstor/scratch/cscs', 'lustre') | ✅ | ✅ | ✅ | ✅ |
-| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('iopsstor/store/cscs', 'lustre') | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=ansible | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=bubblewrap | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=datacenter-gpu-manager | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=gcc12 | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=gcc12-c++ | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=gcc12-fortran | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=htop | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=libtool | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=lsof | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=ltrace | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=lua-lmod | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=netcat | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=nnn | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=pycxi-utils | ✅ | ✅ | ✅ | ✅ |
-| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=wget | ✅ | ✅ | ✅ | ✅ |
 | [apps-path-check-eiger](../checks/system/integration/alps.py) | ❌ | ✅ | ❌ | ❌ |
 | [curl-external-access](../checks/system/integration/alps.py) | ✅ | ✅ | ✅ | ✅ |
 | [df-command-timeout](../checks/system/integration/alps.py) | ✅ | ✅ | ✅ | ✅ |
@@ -475,7 +444,28 @@
 
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
+| [DefaultRequestGPUSetsGRES](../checks/system/slurm/slurm.py) | ✅ | ❌ | ✅ | ✅ |
+| [EnvironmentVariableCheck](../checks/system/slurm/slurm.py) | ✅ | ✅ | ✅ | ✅ |
+| [HostnameCheck](../checks/system/slurm/slurm.py) | ✅ | ✅ | ✅ | ✅ |
 | [InvalidAccount](../checks/system/slurm/invalid_acc.py) | ✅ | ✅ | ✅ | ✅ |
+| [MemoryOverconsumptionCheck](../checks/system/slurm/slurm.py) | ✅ | ✅ | ✅ | ✅ |
+| [MemoryOverconsumptionCheckMPI](../checks/system/slurm/slurm.py) | ✅ | ✅ | ✅ | ✅ |
+| [NVreg_RestrictProfilingToAdminUsers](../checks/system/slurm/slurm.py) | ✅ | ❌ | ✅ | ✅ |
+| [NvidiaSmiDriverVersion](../checks/system/slurm/slurm.py) | ✅ | ❌ | ✅ | ✅ |
+| [SlurmGPUGresTest](../checks/system/slurm/slurm.py) | ✅ | ❌ | ✅ | ✅ |
+| [SlurmNoIsolCpus](../checks/system/slurm/slurm.py) | ✅ | ✅ | ✅ | ✅ |
+| [SlurmParanoidCheck](../checks/system/slurm/slurm.py) | ✅ | ✅ | ✅ | ✅ |
+| [SlurmQueueStatusCheck](../checks/system/slurm/slurm.py)<br>• %slurm_partition=debug | ✅ | ✅ | ✅ | ✅ |
+| [SlurmQueueStatusCheck](../checks/system/slurm/slurm.py)<br>• %slurm_partition=low | ❌ | ✅ | ❌ | ❌ |
+| [SlurmQueueStatusCheck](../checks/system/slurm/slurm.py)<br>• %slurm_partition=normal* | ✅ | ✅ | ✅ | ✅ |
+| [SlurmQueueStatusCheck](../checks/system/slurm/slurm.py)<br>• %slurm_partition=prepost | ❌ | ✅ | ❌ | ❌ |
+| [SlurmTransparentHugepagesCheck](../checks/system/slurm/slurm.py)<br>• %hugepages_options=always | ✅ | ❌ | ✅ | ✅ |
+| [SlurmTransparentHugepagesCheck](../checks/system/slurm/slurm.py)<br>• %hugepages_options=default | ✅ | ❌ | ✅ | ✅ |
+| [SlurmTransparentHugepagesCheck](../checks/system/slurm/slurm.py)<br>• %hugepages_options=madvise | ✅ | ❌ | ✅ | ✅ |
+| [SlurmTransparentHugepagesCheck](../checks/system/slurm/slurm.py)<br>• %hugepages_options=never | ✅ | ❌ | ✅ | ✅ |
+| [SlurmUvmPerfAccessCounterMigration](../checks/system/slurm/slurm.py) | ✅ | ❌ | ✅ | ✅ |
+| [slurm_response_check](../checks/system/slurm/slurm.py)<br>• %command=sacct | ✅ | ✅ | ✅ | ✅ |
+| [slurm_response_check](../checks/system/slurm/slurm.py)<br>• %command=squeue | ✅ | ✅ | ✅ | ✅ |
 
 ### system/uenv
 
@@ -494,4 +484,4 @@
 
 | Metric | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |--------|--------|--------|--------|--------|
-| TOTAL | 284 | 150 | 247 | 241 |
+| TOTAL | 277 | 119 | 208 | 202 |
