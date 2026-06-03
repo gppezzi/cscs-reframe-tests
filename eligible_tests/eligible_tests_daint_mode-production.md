@@ -4,7 +4,7 @@
   - system: `daint`
   - mode: `production`
   - checks: `188`
-- Generated: `2026-06-03 10:41:44 +0200`
+- Generated: `2026-06-03 14:29:03 +0200`
 
 | Test name | Description | Category |
 |----------|-------------|----------|

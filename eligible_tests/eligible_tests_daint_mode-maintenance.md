@@ -4,7 +4,7 @@
   - system: `daint`
   - mode: `maintenance`
   - checks: `209`
-- Generated: `2026-06-03 10:42:01 +0200`
+- Generated: `2026-06-03 14:29:18 +0200`
 
 | Test name | Description | Category |
 |----------|-------------|----------|
