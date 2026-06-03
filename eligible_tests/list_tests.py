@@ -450,7 +450,7 @@ def run_matrix_mode(args, env: dict[str, str] | None = None):
         if args.verbose:
             cmd.insert(1, "-v")
         if mode:
-            cmd += ["-m", mode]
+            cmd += ["--mode", mode]
         if tag:
             cmd += ["--tag", tag]
 
