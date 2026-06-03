@@ -4,11 +4,12 @@
   - system: `daint`
   - tags: `vs-node-validator`
   - checks: `25`
-- Generated: `2026-06-02 15:02:22 +0200`
+- Generated: `2026-06-03 10:41:24 +0200`
 
 | Test name | Description | Category |
 |----------|-------------|----------|
-| [uenv_status](../checks/system/uenv/uenv_status.py) | — | [system/uenv](../checks/system/uenv/) |
+| [DcgmRpmCheck](../checks/system/gssr/dcgm_hook.py) | Check DCGM executable and libraries are installed | [system/gssr](../checks/system/gssr/) |
+| [GssrCeHookCheck](../checks/system/gssr/dcgm_hook.py)<br>• %pytorch_image_tag=25.01-py3_nvrtc-12.9 | Check DCGM CE hook is working with gssr | [system/gssr](../checks/system/gssr/) |
 | [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('capstor/scratch/cscs', 'lustre') | Test mount points in the system | [system/integration](../checks/system/integration/) |
 | [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('capstor/store/cscs', 'lustre') | Test mount points in the system | [system/integration](../checks/system/integration/) |
 | [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('iopsstor/scratch/cscs', 'lustre') | Test mount points in the system | [system/integration](../checks/system/integration/) |
@@ -31,5 +32,4 @@
 | [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=gcc12 | Test pkgs installation in the system | [system/integration](../checks/system/integration/) |
 | [EnvVariableConfigTest](../checks/system/integration/v-cluster_config.py)<br>• %envs_info=('APPS', '/capstor/apps/cscs/daint') | Test environment variables of the system | [system/integration](../checks/system/integration/) |
 | [EnvVariableConfigTest](../checks/system/integration/v-cluster_config.py)<br>• %envs_info=('SCRATCH', '/capstor/scratch/cscs/') | Test environment variables of the system | [system/integration](../checks/system/integration/) |
-| [DcgmRpmCheck](../checks/system/gssr/dcgm_hook.py) | Check DCGM executable and libraries are installed | [system/gssr](../checks/system/gssr/) |
-| [GssrCeHookCheck](../checks/system/gssr/dcgm_hook.py)<br>• %pytorch_image_tag=25.01-py3_nvrtc-12.9 | Check DCGM CE hook is working with gssr | [system/gssr](../checks/system/gssr/) |
+| [uenv_status](../checks/system/uenv/uenv_status.py) | — | [system/uenv](../checks/system/uenv/) |

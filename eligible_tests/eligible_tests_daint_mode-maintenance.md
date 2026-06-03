@@ -3,15 +3,15 @@
 - Filters:
   - system: `daint`
   - mode: `maintenance`
-  - checks: `211`
-- Generated: `2026-06-02 15:02:35 +0200`
+  - checks: `209`
+- Generated: `2026-06-03 10:42:01 +0200`
 
 | Test name | Description | Category |
 |----------|-------------|----------|
-| [Uenv_HDF5Test](../checks/libraries/io/hdf5.py)<br>• %lang=cpp | — | [libraries/io](../checks/libraries/io/) |
-| [Uenv_HDF5Test](../checks/libraries/io/hdf5.py)<br>• %lang=f90 | — | [libraries/io](../checks/libraries/io/) |
-| [dlaf_check_uenv](../checks/libraries/dlaf/dlaf.py)<br>• %test_name=gen_eigensolver | — | [libraries/dlaf](../checks/libraries/dlaf/) |
-| [dlaf_check_uenv](../checks/libraries/dlaf/dlaf.py)<br>• %test_name=eigensolver | — | [libraries/dlaf](../checks/libraries/dlaf/) |
+| [DcgmRpmCheck](../checks/system/gssr/dcgm_hook.py) | Check DCGM executable and libraries are installed | [system/gssr](../checks/system/gssr/) |
+| [GssrCeHookCheck](../checks/system/gssr/dcgm_hook.py)<br>• %pytorch_image_tag=25.01-py3_nvrtc-12.9 | Check DCGM CE hook is working with gssr | [system/gssr](../checks/system/gssr/) |
+| [UENV_NvidiaDeviceCount](../checks/system/nvidia/nvidia_device_count.py) | — | [system/nvidia](../checks/system/nvidia/) |
+| [InvalidAccount](../checks/system/slurm/invalid_acc.py) | Check if Slurm accepts job submission using an invalid<br>        account. Reframe should raise a failure if the job starts. | [system/slurm](../checks/system/slurm/) |
 | [HostnameCheck](../checks/system/slurm/slurm.py) | Check hostname pattern nidXXXXXX on the CN | [system/slurm](../checks/system/slurm/) |
 | [EnvironmentVariableCheck](../checks/system/slurm/slurm.py) | Test if user env variables are propagated to CN | [system/slurm](../checks/system/slurm/) |
 | [NvidiaSmiDriverVersion](../checks/system/slurm/slurm.py) | Nvidia-smi sanity check (output driver version) | [system/slurm](../checks/system/slurm/) |
@@ -27,7 +27,6 @@
 | [NVreg_RestrictProfilingToAdminUsers](../checks/system/slurm/slurm.py) | Allow access to the GPU Performance Counters for NVIDIA tools:<br>    https://developer.nvidia.com/nvidia-development-tools-solutions-err_nvgpuctrperm-permission-issue-performance-counters | [system/slurm](../checks/system/slurm/) |
 | [SlurmUvmPerfAccessCounterMigration](../checks/system/slurm/slurm.py) | Check that uvm_perf_access_counter_mimc_migration_enable is set to 0<br>    as it is buggy in older drivers. If the driver is at least version 565, the<br>    name of the option is different and should be set to the default (-1). | [system/slurm](../checks/system/slurm/) |
 | [SlurmGPUGresTest](../checks/system/slurm/slurm.py) | Ensure that the Slurm GRES (Generic REsource Scheduling) of the<br>       number of gpus is correctly set on all the nodes of each partition.<br><br>       For the current partition, the test performs the following steps:<br>        1) count the number of nodes (node_count)<br>        2) count the number of nodes having Gres=gpu:N (gres_count) where<br>           N=num_devices from the configuration<br>        3) ensure that 1) and 2) match | [system/slurm](../checks/system/slurm/) |
-| [InvalidAccount](../checks/system/slurm/invalid_acc.py) | Check if Slurm accepts job submission using an invalid<br>        account. Reframe should raise a failure if the job starts. | [system/slurm](../checks/system/slurm/) |
 | [timeout-completes](../checks/system/integration/alps.py) | Verify timeout completes successfully | [system/integration](../checks/system/integration/) |
 | [timeout-signal-term](../checks/system/integration/alps.py) | Verify timeout delivers TERM after expiry | [system/integration](../checks/system/integration/) |
 | [df-command-timeout](../checks/system/integration/alps.py) | Verify df command completes without timeout | [system/integration](../checks/system/integration/) |
@@ -91,47 +90,15 @@
 | [vservices-image-prgenv-gnu](../checks/system/integration/alps.py) | Verify PrgEnv-gnu image available for GH200 | [system/integration](../checks/system/integration/) |
 | [vservices-image-netcdf-tools](../checks/system/integration/alps.py) | Verify NetCDF tools image available for GH200 | [system/integration](../checks/system/integration/) |
 | [vservices-image-editors](../checks/system/integration/alps.py) | Verify editors image available for GH200 | [system/integration](../checks/system/integration/) |
-| [ddBlockSizeTest](../checks/system/io/dd_blk_size.py) | dd write tests with different block sizes | [system/io](../checks/system/io/) |
 | [fio_compile_test](../checks/system/io/fio.py) | Make sure that we can compile fio. | [system/io](../checks/system/io/) |
 | [stuck_gpu_mem_test](../checks/system/io/fio.py) | Check for stuck GPU memory on GH200 | [system/io](../checks/system/io/) |
-| [DcgmRpmCheck](../checks/system/gssr/dcgm_hook.py) | Check DCGM executable and libraries are installed | [system/gssr](../checks/system/gssr/) |
-| [GssrCeHookCheck](../checks/system/gssr/dcgm_hook.py)<br>• %pytorch_image_tag=25.01-py3_nvrtc-12.9 | Check DCGM CE hook is working with gssr | [system/gssr](../checks/system/gssr/) |
-| [UENV_NvidiaDeviceCount](../checks/system/nvidia/nvidia_device_count.py) | — | [system/nvidia](../checks/system/nvidia/) |
+| [ddBlockSizeTest](../checks/system/io/dd_blk_size.py) | dd write tests with different block sizes | [system/io](../checks/system/io/) |
 | [RunJobCE](../checks/system/ce/ce_import_run_image.py) | CE check with Dockerhub import and simple image run (ubuntu) | [system/ce](../checks/system/ce/) |
 | [RunNVGPUJobCE](../checks/system/ce/ce_import_run_image.py) | CE check with NGC import and Stream job on GPU | [system/ce](../checks/system/ce/) |
-| [UenvFixincludes](../checks/prgenv/uenv_fixincludes.py) | Check that GCC is not "fixing" the pthread.h header. See<br>    https://github.com/spack/spack-packages/pull/2596 for an overview and links<br>    to further details. | [prgenv](../checks/prgenv/) |
-| [cuda_aware_mpi_build](../checks/prgenv/cuda/cuda_aware_mpi.py) | Cuda-aware MPI test from NVIDIA code-samples.git | [prgenv/cuda](../checks/prgenv/cuda/) |
-| [UENV_NVML](../checks/prgenv/cuda/cuda_nvml.py) | Checks that nvml can report GPU informations | [prgenv/cuda](../checks/prgenv/cuda/) |
-| [UENV_CudaSamples](../checks/prgenv/cuda/cuda_samples.py)<br>• %sample=deviceQuery | CUDA deviceQuery test | [prgenv/cuda](../checks/prgenv/cuda/) |
-| [UENV_CudaSamples](../checks/prgenv/cuda/cuda_samples.py)<br>• %sample=simpleCUBLAS | CUDA simpleCUBLAS test | [prgenv/cuda](../checks/prgenv/cuda/) |
-| [UENV_CudaSamples](../checks/prgenv/cuda/cuda_samples.py)<br>• %sample=conjugateGradient | CUDA conjugateGradient test | [prgenv/cuda](../checks/prgenv/cuda/) |
-| [MPIIntranodePinned](../checks/prgenv/cuda/cuda_mpi_intranode_pinned.py)<br>• %mem=host<br>• %mpich_smp_single_copy_mode=CMA | Reproducer for slow intranode performance with pinned memory | [prgenv/cuda](../checks/prgenv/cuda/) |
-| [MPIIntranodePinned](../checks/prgenv/cuda/cuda_mpi_intranode_pinned.py)<br>• %mem=host<br>• %mpich_smp_single_copy_mode=XPMEM | Reproducer for slow intranode performance with pinned memory | [prgenv/cuda](../checks/prgenv/cuda/) |
-| [MPIIntranodePinned](../checks/prgenv/cuda/cuda_mpi_intranode_pinned.py)<br>• %mem=pinned_host<br>• %mpich_smp_single_copy_mode=CMA | Reproducer for slow intranode performance with pinned memory | [prgenv/cuda](../checks/prgenv/cuda/) |
-| [MPIIntranodePinned](../checks/prgenv/cuda/cuda_mpi_intranode_pinned.py)<br>• %mem=pinned_host<br>• %mpich_smp_single_copy_mode=XPMEM | Reproducer for slow intranode performance with pinned memory | [prgenv/cuda](../checks/prgenv/cuda/) |
-| [MpiInitTest](../checks/prgenv/mpi.py) | — | [prgenv](../checks/prgenv/) |
-| [MpiGpuDirectOOM](../checks/prgenv/mpi.py)<br>• %ipc=0 | — | [prgenv](../checks/prgenv/) |
-| [MpiGpuDirectOOM](../checks/prgenv/mpi.py)<br>• %ipc=1 | — | [prgenv](../checks/prgenv/) |
-| [HelloWorldTestSerial](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=c | C Hello, World Serial Dynamic | [prgenv](../checks/prgenv/) |
-| [HelloWorldTestSerial](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=cpp | C++ Hello, World Serial Dynamic | [prgenv](../checks/prgenv/) |
-| [HelloWorldTestSerial](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=F90 | Fortran 90 Hello, World Serial Dynamic | [prgenv](../checks/prgenv/) |
-| [HelloWorldTestOpenMP](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=c | C Hello, World OpenMP Dynamic | [prgenv](../checks/prgenv/) |
-| [HelloWorldTestOpenMP](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=cpp | C++ Hello, World OpenMP Dynamic | [prgenv](../checks/prgenv/) |
-| [HelloWorldTestOpenMP](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=F90 | Fortran 90 Hello, World OpenMP Dynamic | [prgenv](../checks/prgenv/) |
-| [HelloWorldTestMPI](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=c | C Hello, World MPI Dynamic | [prgenv](../checks/prgenv/) |
-| [HelloWorldTestMPI](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=cpp | C++ Hello, World MPI Dynamic | [prgenv](../checks/prgenv/) |
-| [HelloWorldTestMPI](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=F90 | Fortran 90 Hello, World MPI Dynamic | [prgenv](../checks/prgenv/) |
-| [HelloWorldTestMPIOpenMP](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=c | C Hello, World MPI + OpenMP Dynamic | [prgenv](../checks/prgenv/) |
-| [HelloWorldTestMPIOpenMP](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=cpp | C++ Hello, World MPI + OpenMP Dynamic | [prgenv](../checks/prgenv/) |
-| [HelloWorldTestMPIOpenMP](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=F90 | Fortran 90 Hello, World MPI + OpenMP Dynamic | [prgenv](../checks/prgenv/) |
-| [SphExa_CE](../checks/containers/container_engine/sphexa.py)<br>• %sph_infile=/sphexa/50c.h5<br>• %num_gpus=8<br>• %sph_testcase=evrard<br>• %sph_steps=10<br>• %sph_size=200 | SPH-EXA for CE | [containers/container_engine](../checks/containers/container_engine/) |
-| [PyFR_CE](../checks/containers/container_engine/pyfr.py)<br>• %backend=cuda<br>• %test_name=3d-taylor-green-ci | PyFR for CE | [containers/container_engine](../checks/containers/container_engine/) |
-| [CUDA_MPS_CE](../checks/containers/container_engine/cuda_mps.py) | Check for CUDA MPS with CE | [containers/container_engine](../checks/containers/container_engine/) |
-| [SSH_CE](../checks/containers/container_engine/ssh.py) | Checks if SSH is available with CE | [containers/container_engine](../checks/containers/container_engine/) |
-| [OMB_MPICH_CE](../checks/containers/container_engine/omb.py)<br>• %test_name=pt2pt/osu_bw | OSU Micro-benchmarks for MPICH/CE (Point-to-Point and All-to-All) | [containers/container_engine](../checks/containers/container_engine/) |
-| [OMB_MPICH_CE](../checks/containers/container_engine/omb.py)<br>• %test_name=collective/osu_alltoall | OSU Micro-benchmarks for MPICH/CE (Point-to-Point and All-to-All) | [containers/container_engine](../checks/containers/container_engine/) |
-| [OMB_OMPI_CE](../checks/containers/container_engine/omb.py)<br>• %test_name=pt2pt/osu_bw | OSU Micro-benchmarks for OpenMPI/CE (Point-to-Point and All-to-All) | [containers/container_engine](../checks/containers/container_engine/) |
-| [OMB_OMPI_CE](../checks/containers/container_engine/omb.py)<br>• %test_name=collective/osu_alltoall | OSU Micro-benchmarks for OpenMPI/CE (Point-to-Point and All-to-All) | [containers/container_engine](../checks/containers/container_engine/) |
+| [NCCLTestsCE](../checks/microbenchmarks/xccl/xccl_tests.py)<br>• %test_name=all_reduce<br>• %image_tag=cuda12.9.1-ubuntu24.04 | Point-to-Point and All-Reduce NCCL tests with CE | [microbenchmarks/xccl](../checks/microbenchmarks/xccl/) |
+| [NCCLTestsCE](../checks/microbenchmarks/xccl/xccl_tests.py)<br>• %test_name=sendrecv<br>• %image_tag=cuda12.9.1-ubuntu24.04 | Point-to-Point and All-Reduce NCCL tests with CE | [microbenchmarks/xccl](../checks/microbenchmarks/xccl/) |
+| [NCCLTestsUENV](../checks/microbenchmarks/xccl/xccl_tests.py)<br>• %test_name=all_reduce | Point-to-Point and All-Reduce NCCL tests with uenv | [microbenchmarks/xccl](../checks/microbenchmarks/xccl/) |
+| [NCCLTestsUENV](../checks/microbenchmarks/xccl/xccl_tests.py)<br>• %test_name=sendrecv | Point-to-Point and All-Reduce NCCL tests with uenv | [microbenchmarks/xccl](../checks/microbenchmarks/xccl/) |
 | [FFTBenchBuild](../checks/microbenchmarks/gpu/gpu_benchmarks/fft.py) | Build FFT benchmark | [microbenchmarks/gpu/gpu_benchmarks](../checks/microbenchmarks/gpu/gpu_benchmarks/) |
 | [FFTCheck](../checks/microbenchmarks/gpu/gpu_benchmarks/fft.py)<br>• %fft_dim=1D<br>• %fft_size=128 | — | [microbenchmarks/gpu/gpu_benchmarks](../checks/microbenchmarks/gpu/gpu_benchmarks/) |
 | [FFTCheck](../checks/microbenchmarks/gpu/gpu_benchmarks/fft.py)<br>• %fft_dim=1D<br>• %fft_size=256 | — | [microbenchmarks/gpu/gpu_benchmarks](../checks/microbenchmarks/gpu/gpu_benchmarks/) |
@@ -154,33 +121,45 @@
 | [ParallelAlgos](../checks/microbenchmarks/gpu/gpu_benchmarks/parallel_algos.py)<br>• %algo=reduce<br>• %_executable_opts=26 | — | [microbenchmarks/gpu/gpu_benchmarks](../checks/microbenchmarks/gpu/gpu_benchmarks/) |
 | [ParallelAlgos](../checks/microbenchmarks/gpu/gpu_benchmarks/parallel_algos.py)<br>• %algo=reduce<br>• %_executable_opts=29 | — | [microbenchmarks/gpu/gpu_benchmarks](../checks/microbenchmarks/gpu/gpu_benchmarks/) |
 | [ParallelAlgos](../checks/microbenchmarks/gpu/gpu_benchmarks/parallel_algos.py)<br>• %algo=reduce<br>• %_executable_opts=31 | — | [microbenchmarks/gpu/gpu_benchmarks](../checks/microbenchmarks/gpu/gpu_benchmarks/) |
-| [NCCLTestsCE](../checks/microbenchmarks/xccl/xccl_tests.py)<br>• %test_name=all_reduce<br>• %image_tag=cuda12.9.1-ubuntu24.04 | Point-to-Point and All-Reduce NCCL tests with CE | [microbenchmarks/xccl](../checks/microbenchmarks/xccl/) |
-| [NCCLTestsCE](../checks/microbenchmarks/xccl/xccl_tests.py)<br>• %test_name=sendrecv<br>• %image_tag=cuda12.9.1-ubuntu24.04 | Point-to-Point and All-Reduce NCCL tests with CE | [microbenchmarks/xccl](../checks/microbenchmarks/xccl/) |
-| [NCCLTestsUENV](../checks/microbenchmarks/xccl/xccl_tests.py)<br>• %test_name=all_reduce | Point-to-Point and All-Reduce NCCL tests with uenv | [microbenchmarks/xccl](../checks/microbenchmarks/xccl/) |
-| [NCCLTestsUENV](../checks/microbenchmarks/xccl/xccl_tests.py)<br>• %test_name=sendrecv | Point-to-Point and All-Reduce NCCL tests with uenv | [microbenchmarks/xccl](../checks/microbenchmarks/xccl/) |
 | [CudaNodeBurnGemmCE](../checks/microbenchmarks/cpu_gpu/node_burn/node-burn-ce.py) | GPU Node burn GEMM test for A100/GH200 using CE | [microbenchmarks/cpu_gpu/node_burn](../checks/microbenchmarks/cpu_gpu/node_burn/) |
 | [CPUNodeBurnGemmCE](../checks/microbenchmarks/cpu_gpu/node_burn/node-burn-ce.py) | CPU Node burn GEMM test for A100/GH200-nodes using CE | [microbenchmarks/cpu_gpu/node_burn](../checks/microbenchmarks/cpu_gpu/node_burn/) |
 | [CudaNodeBurnStreamCE](../checks/microbenchmarks/cpu_gpu/node_burn/node-burn-ce.py) | GPU Node burn Stream test for A100/GH200 using CE | [microbenchmarks/cpu_gpu/node_burn](../checks/microbenchmarks/cpu_gpu/node_burn/) |
 | [CPUNodeBurnStreamCE](../checks/microbenchmarks/cpu_gpu/node_burn/node-burn-ce.py) | CPU Node burn Stream test for A100/GH200-nodes using CE | [microbenchmarks/cpu_gpu/node_burn](../checks/microbenchmarks/cpu_gpu/node_burn/) |
-| [ParaviewBuildGadgetPlugin](../checks/apps/paraview/build-gadget-plugin/paraview_buildgadgetplugin.py) | — | [apps/paraview/build-gadget-plugin](../checks/apps/paraview/build-gadget-plugin/) |
-| [ParaviewCatalystClipping](../checks/apps/paraview/catalystclipping/paraview_catalystclipping.py) | — | [apps/paraview/catalystclipping](../checks/apps/paraview/catalystclipping/) |
-| [ParaView_coloredSphere](../checks/apps/paraview/paraview.py) | — | [apps/paraview](../checks/apps/paraview/) |
-| [ParaView_catalystClipping](../checks/apps/paraview/paraview.py) | — | [apps/paraview](../checks/apps/paraview/) |
-| [ParaviewColoredSphere](../checks/apps/paraview/coloredsphere/paraview_coloredsphere.py) | — | [apps/paraview/coloredsphere](../checks/apps/paraview/coloredsphere/) |
+| [QeSiriusCheckAuSurfUENVExec](../checks/apps/q-e-sirius/q-e-sirius_check_uenv.py) | — | [apps/q-e-sirius](../checks/apps/q-e-sirius/) |
+| [PyTorchMegatronLM_CE](../checks/apps/pytorch/pytorch_megatronlm.py)<br>• %model=llama3-8b | — | [apps/pytorch](../checks/apps/pytorch/) |
+| [PyTorchMegatronLM_CE](../checks/apps/pytorch/pytorch_megatronlm.py)<br>• %model=llama3-70b | — | [apps/pytorch](../checks/apps/pytorch/) |
+| [PyTorchMegatronLM_UENV](../checks/apps/pytorch/pytorch_megatronlm.py)<br>• %model=llama3-8b | — | [apps/pytorch](../checks/apps/pytorch/) |
+| [PyTorchMegatronLM_UENV](../checks/apps/pytorch/pytorch_megatronlm.py)<br>• %model=llama3-70b | — | [apps/pytorch](../checks/apps/pytorch/) |
+| [PyTorchNCCLAllReduce](../checks/apps/pytorch/pytorch_allreduce.py)<br>• %image=nvcr.io#nvidia/pytorch:25.06-py3 | All-reduce PyTorch benchmark with CE (NCCL version) | [apps/pytorch](../checks/apps/pytorch/) |
+| [PyTorchDdpCeNv](../checks/apps/pytorch/pytorch_nvidia.py)<br>• %num_nodes=1<br>• %aws_ofi_nccl=True<br>• %image=nvcr.io#nvidia/pytorch:25.06-py3 | Check the training throughput using the ContainerEngine and NVIDIA NGC | [apps/pytorch](../checks/apps/pytorch/) |
+| [PyTorchDdpCeNvlarge](../checks/apps/pytorch/pytorch_nvidia.py)<br>• %num_nodes=3<br>• %aws_ofi_nccl=True<br>• %image=nvcr.io#nvidia/pytorch:25.06-py3 | Check the training throughput using the ContainerEngine and NVIDIA NGC | [apps/pytorch](../checks/apps/pytorch/) |
+| [PyTorchDdpCeNvlarge](../checks/apps/pytorch/pytorch_nvidia.py)<br>• %num_nodes=8<br>• %aws_ofi_nccl=True<br>• %image=nvcr.io#nvidia/pytorch:25.06-py3 | Check the training throughput using the ContainerEngine and NVIDIA NGC | [apps/pytorch](../checks/apps/pytorch/) |
 | [Cp2kBuildTestUENV](../checks/apps/cp2k/cp2k_uenv.py) | CP2K Build Test | [apps/cp2k](../checks/apps/cp2k/) |
 | [Cp2kCheckMD_UENVExec](../checks/apps/cp2k/cp2k_uenv.py) | — | [apps/cp2k](../checks/apps/cp2k/) |
 | [Cp2kCheckMD_UENVCustomExec](../checks/apps/cp2k/cp2k_uenv.py) | — | [apps/cp2k](../checks/apps/cp2k/) |
 | [Cp2kCheckPBE_UENVExec](../checks/apps/cp2k/cp2k_uenv.py) | — | [apps/cp2k](../checks/apps/cp2k/) |
 | [Cp2kCheckPBE_UENVCustomExec](../checks/apps/cp2k/cp2k_uenv.py) | — | [apps/cp2k](../checks/apps/cp2k/) |
 | [Cp2kCheckRPA_UENVExec](../checks/apps/cp2k/cp2k_uenv.py) | — | [apps/cp2k](../checks/apps/cp2k/) |
+| [SphExa](../checks/apps/sphexa/sphexa_uenv.py)<br>• %sph_build_type=Release<br>• %sph_infile=50c.h5<br>• %num_gpus=4<br>• %sph_testcase=evrard<br>• %sph_steps=2<br>• %sph_side=150 | SphExa test | [apps/sphexa](../checks/apps/sphexa/) |
+| [ParaviewBuildGadgetPlugin](../checks/apps/paraview/build-gadget-plugin/paraview_buildgadgetplugin.py) | — | [apps/paraview/build-gadget-plugin](../checks/apps/paraview/build-gadget-plugin/) |
+| [ParaviewColoredSphere](../checks/apps/paraview/coloredsphere/paraview_coloredsphere.py) | — | [apps/paraview/coloredsphere](../checks/apps/paraview/coloredsphere/) |
+| [ParaView_coloredSphere](../checks/apps/paraview/paraview.py) | — | [apps/paraview](../checks/apps/paraview/) |
+| [ParaView_catalystClipping](../checks/apps/paraview/paraview.py) | — | [apps/paraview](../checks/apps/paraview/) |
+| [ParaviewCatalystClipping](../checks/apps/paraview/catalystclipping/paraview_catalystclipping.py) | — | [apps/paraview/catalystclipping](../checks/apps/paraview/catalystclipping/) |
+| [NamdBuildTestUENV](../checks/apps/namd/namd_check_uenv.py) | NAMD Build Test | [apps/namd](../checks/apps/namd/) |
+| [NamdCheckUENVExec](../checks/apps/namd/namd_check_uenv.py) | NAMD STMV Benchmark | [apps/namd](../checks/apps/namd/) |
+| [NamdCheckUENVCustomExec](../checks/apps/namd/namd_check_uenv.py) | NAMD STMV Benchmark | [apps/namd](../checks/apps/namd/) |
 | [VaspCheckUENV](../checks/apps/vasp/vasp_check_uenv.py)<br>• %num_nodes=1 | — | [apps/vasp](../checks/apps/vasp/) |
 | [VaspCheckUENV](../checks/apps/vasp/vasp_check_uenv.py)<br>• %num_nodes=2 | — | [apps/vasp](../checks/apps/vasp/) |
 | [VaspBuildTestUENV](../checks/apps/vasp/vasp_check_uenv.py) | VASP Build Test | [apps/vasp](../checks/apps/vasp/) |
 | [VaspBuildCheckUENV](../checks/apps/vasp/vasp_check_uenv.py)<br>• %num_nodes=1 | — | [apps/vasp](../checks/apps/vasp/) |
 | [VaspBuildCheckUENV](../checks/apps/vasp/vasp_check_uenv.py)<br>• %num_nodes=2 | — | [apps/vasp](../checks/apps/vasp/) |
-| [QeSiriusCheckAuSurfUENVExec](../checks/apps/q-e-sirius/q-e-sirius_check_uenv.py) | — | [apps/q-e-sirius](../checks/apps/q-e-sirius/) |
-| [gromacs_build_test](../checks/apps/gromacs/gromacs_check.py) | GROMACS Build Test | [apps/gromacs](../checks/apps/gromacs/) |
-| [gromacs_run_test](../checks/apps/gromacs/gromacs_check.py) | — | [apps/gromacs](../checks/apps/gromacs/) |
+| [QeBuildTestUENV](../checks/apps/quantumespresso/quantumespresso_check_uenv.py) | QuantumESPRESSO Build Test | [apps/quantumespresso](../checks/apps/quantumespresso/) |
+| [QeCheckAuSurfUENVExec](../checks/apps/quantumespresso/quantumespresso_check_uenv.py) | — | [apps/quantumespresso](../checks/apps/quantumespresso/) |
+| [QeCheckAuSurfCustomExecUENV](../checks/apps/quantumespresso/quantumespresso_check_uenv.py) | — | [apps/quantumespresso](../checks/apps/quantumespresso/) |
+| [lammps_build_test](../checks/apps/lammps/lammps.py) | LAMMPS Build Test | [apps/lammps](../checks/apps/lammps/) |
+| [lammps_gpu_test](../checks/apps/lammps/lammps.py) | — | [apps/lammps](../checks/apps/lammps/) |
+| [lammps_kokkos_test](../checks/apps/lammps/lammps.py) | — | [apps/lammps](../checks/apps/lammps/) |
 | [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_first_light_example | Build Ascent intro (C++) | [apps/ascent](../checks/apps/ascent/) |
 | [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_scene_example1 | Build Ascent intro (C++) | [apps/ascent](../checks/apps/ascent/) |
 | [uenv_ascent_intro_cpp](../checks/apps/ascent/ascent.py)<br>• %exe=ascent_scene_example2 | Build Ascent intro (C++) | [apps/ascent](../checks/apps/ascent/) |
@@ -201,21 +180,40 @@
 | [uenv_ascent_noise](../checks/apps/ascent/ascent.py) | Build and Run Ascent test: noise (C++) | [apps/ascent](../checks/apps/ascent/) |
 | [uenv_ascent_kripke](../checks/apps/ascent/ascent.py) | Build and Run Ascent test: kripke (C++) | [apps/ascent](../checks/apps/ascent/) |
 | [uenv_ascent_cloverleaf3d](../checks/apps/ascent/ascent.py) | Build and Run Ascent test: CloverLeaf3D (F90) | [apps/ascent](../checks/apps/ascent/) |
-| [NamdBuildTestUENV](../checks/apps/namd/namd_check_uenv.py) | NAMD Build Test | [apps/namd](../checks/apps/namd/) |
-| [NamdCheckUENVExec](../checks/apps/namd/namd_check_uenv.py) | NAMD STMV Benchmark | [apps/namd](../checks/apps/namd/) |
-| [NamdCheckUENVCustomExec](../checks/apps/namd/namd_check_uenv.py) | NAMD STMV Benchmark | [apps/namd](../checks/apps/namd/) |
-| [lammps_build_test](../checks/apps/lammps/lammps.py) | LAMMPS Build Test | [apps/lammps](../checks/apps/lammps/) |
-| [lammps_gpu_test](../checks/apps/lammps/lammps.py) | — | [apps/lammps](../checks/apps/lammps/) |
-| [lammps_kokkos_test](../checks/apps/lammps/lammps.py) | — | [apps/lammps](../checks/apps/lammps/) |
-| [PyTorchMegatronLM_CE](../checks/apps/pytorch/pytorch_megatronlm.py)<br>• %model=llama3-8b | — | [apps/pytorch](../checks/apps/pytorch/) |
-| [PyTorchMegatronLM_CE](../checks/apps/pytorch/pytorch_megatronlm.py)<br>• %model=llama3-70b | — | [apps/pytorch](../checks/apps/pytorch/) |
-| [PyTorchMegatronLM_UENV](../checks/apps/pytorch/pytorch_megatronlm.py)<br>• %model=llama3-8b | — | [apps/pytorch](../checks/apps/pytorch/) |
-| [PyTorchMegatronLM_UENV](../checks/apps/pytorch/pytorch_megatronlm.py)<br>• %model=llama3-70b | — | [apps/pytorch](../checks/apps/pytorch/) |
-| [PyTorchNCCLAllReduce](../checks/apps/pytorch/pytorch_allreduce.py)<br>• %image=nvcr.io#nvidia/pytorch:25.06-py3 | All-reduce PyTorch benchmark with CE (NCCL version) | [apps/pytorch](../checks/apps/pytorch/) |
-| [PyTorchDdpCeNv](../checks/apps/pytorch/pytorch_nvidia.py)<br>• %num_nodes=1<br>• %aws_ofi_nccl=True<br>• %image=nvcr.io#nvidia/pytorch:25.06-py3 | Check the training throughput using the ContainerEngine and NVIDIA NGC | [apps/pytorch](../checks/apps/pytorch/) |
-| [PyTorchDdpCeNvlarge](../checks/apps/pytorch/pytorch_nvidia.py)<br>• %num_nodes=3<br>• %aws_ofi_nccl=True<br>• %image=nvcr.io#nvidia/pytorch:25.06-py3 | Check the training throughput using the ContainerEngine and NVIDIA NGC | [apps/pytorch](../checks/apps/pytorch/) |
-| [PyTorchDdpCeNvlarge](../checks/apps/pytorch/pytorch_nvidia.py)<br>• %num_nodes=8<br>• %aws_ofi_nccl=True<br>• %image=nvcr.io#nvidia/pytorch:25.06-py3 | Check the training throughput using the ContainerEngine and NVIDIA NGC | [apps/pytorch](../checks/apps/pytorch/) |
-| [SphExa](../checks/apps/sphexa/sphexa_uenv.py)<br>• %sph_build_type=Release<br>• %sph_infile=50c.h5<br>• %num_gpus=4<br>• %sph_testcase=evrard<br>• %sph_steps=2<br>• %sph_side=150 | SphExa test | [apps/sphexa](../checks/apps/sphexa/) |
-| [QeBuildTestUENV](../checks/apps/quantumespresso/quantumespresso_check_uenv.py) | QuantumESPRESSO Build Test | [apps/quantumespresso](../checks/apps/quantumespresso/) |
-| [QeCheckAuSurfUENVExec](../checks/apps/quantumespresso/quantumespresso_check_uenv.py) | — | [apps/quantumespresso](../checks/apps/quantumespresso/) |
-| [QeCheckAuSurfCustomExecUENV](../checks/apps/quantumespresso/quantumespresso_check_uenv.py) | — | [apps/quantumespresso](../checks/apps/quantumespresso/) |
+| [cuda_aware_mpi_build](../checks/prgenv/cuda/cuda_aware_mpi.py) | Cuda-aware MPI test from NVIDIA code-samples.git | [prgenv/cuda](../checks/prgenv/cuda/) |
+| [UENV_NVML](../checks/prgenv/cuda/cuda_nvml.py) | Checks that nvml can report GPU informations | [prgenv/cuda](../checks/prgenv/cuda/) |
+| [MPIIntranodePinned](../checks/prgenv/cuda/cuda_mpi_intranode_pinned.py)<br>• %mem=host<br>• %mpich_smp_single_copy_mode=CMA | Reproducer for slow intranode performance with pinned memory | [prgenv/cuda](../checks/prgenv/cuda/) |
+| [MPIIntranodePinned](../checks/prgenv/cuda/cuda_mpi_intranode_pinned.py)<br>• %mem=host<br>• %mpich_smp_single_copy_mode=XPMEM | Reproducer for slow intranode performance with pinned memory | [prgenv/cuda](../checks/prgenv/cuda/) |
+| [MPIIntranodePinned](../checks/prgenv/cuda/cuda_mpi_intranode_pinned.py)<br>• %mem=pinned_host<br>• %mpich_smp_single_copy_mode=CMA | Reproducer for slow intranode performance with pinned memory | [prgenv/cuda](../checks/prgenv/cuda/) |
+| [MPIIntranodePinned](../checks/prgenv/cuda/cuda_mpi_intranode_pinned.py)<br>• %mem=pinned_host<br>• %mpich_smp_single_copy_mode=XPMEM | Reproducer for slow intranode performance with pinned memory | [prgenv/cuda](../checks/prgenv/cuda/) |
+| [UENV_CudaSamples](../checks/prgenv/cuda/cuda_samples.py)<br>• %sample=deviceQuery | CUDA deviceQuery test | [prgenv/cuda](../checks/prgenv/cuda/) |
+| [UENV_CudaSamples](../checks/prgenv/cuda/cuda_samples.py)<br>• %sample=simpleCUBLAS | CUDA simpleCUBLAS test | [prgenv/cuda](../checks/prgenv/cuda/) |
+| [UENV_CudaSamples](../checks/prgenv/cuda/cuda_samples.py)<br>• %sample=conjugateGradient | CUDA conjugateGradient test | [prgenv/cuda](../checks/prgenv/cuda/) |
+| [UenvFixincludes](../checks/prgenv/uenv_fixincludes.py) | Check that GCC is not "fixing" the pthread.h header. See<br>    https://github.com/spack/spack-packages/pull/2596 for an overview and links<br>    to further details. | [prgenv](../checks/prgenv/) |
+| [MpiInitTest](../checks/prgenv/mpi.py) | — | [prgenv](../checks/prgenv/) |
+| [MpiGpuDirectOOM](../checks/prgenv/mpi.py)<br>• %ipc=0 | — | [prgenv](../checks/prgenv/) |
+| [MpiGpuDirectOOM](../checks/prgenv/mpi.py)<br>• %ipc=1 | — | [prgenv](../checks/prgenv/) |
+| [HelloWorldTestSerial](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=c | C Hello, World Serial Dynamic | [prgenv](../checks/prgenv/) |
+| [HelloWorldTestSerial](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=cpp | C++ Hello, World Serial Dynamic | [prgenv](../checks/prgenv/) |
+| [HelloWorldTestSerial](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=F90 | Fortran 90 Hello, World Serial Dynamic | [prgenv](../checks/prgenv/) |
+| [HelloWorldTestOpenMP](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=c | C Hello, World OpenMP Dynamic | [prgenv](../checks/prgenv/) |
+| [HelloWorldTestOpenMP](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=cpp | C++ Hello, World OpenMP Dynamic | [prgenv](../checks/prgenv/) |
+| [HelloWorldTestOpenMP](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=F90 | Fortran 90 Hello, World OpenMP Dynamic | [prgenv](../checks/prgenv/) |
+| [HelloWorldTestMPI](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=c | C Hello, World MPI Dynamic | [prgenv](../checks/prgenv/) |
+| [HelloWorldTestMPI](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=cpp | C++ Hello, World MPI Dynamic | [prgenv](../checks/prgenv/) |
+| [HelloWorldTestMPI](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=F90 | Fortran 90 Hello, World MPI Dynamic | [prgenv](../checks/prgenv/) |
+| [HelloWorldTestMPIOpenMP](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=c | C Hello, World MPI + OpenMP Dynamic | [prgenv](../checks/prgenv/) |
+| [HelloWorldTestMPIOpenMP](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=cpp | C++ Hello, World MPI + OpenMP Dynamic | [prgenv](../checks/prgenv/) |
+| [HelloWorldTestMPIOpenMP](../checks/prgenv/helloworld.py)<br>• %linking=dynamic<br>• %lang=F90 | Fortran 90 Hello, World MPI + OpenMP Dynamic | [prgenv](../checks/prgenv/) |
+| [SphExa_CE](../checks/containers/container_engine/sphexa.py)<br>• %sph_infile=/sphexa/50c.h5<br>• %num_gpus=8<br>• %sph_testcase=evrard<br>• %sph_steps=10<br>• %sph_size=200 | SPH-EXA for CE | [containers/container_engine](../checks/containers/container_engine/) |
+| [PyFR_CE](../checks/containers/container_engine/pyfr.py)<br>• %backend=cuda<br>• %test_name=3d-taylor-green-ci | PyFR for CE | [containers/container_engine](../checks/containers/container_engine/) |
+| [SSH_CE](../checks/containers/container_engine/ssh.py) | Checks if SSH is available with CE | [containers/container_engine](../checks/containers/container_engine/) |
+| [OMB_MPICH_CE](../checks/containers/container_engine/omb.py)<br>• %test_name=pt2pt/osu_bw | OSU Micro-benchmarks for MPICH/CE (Point-to-Point and All-to-All) | [containers/container_engine](../checks/containers/container_engine/) |
+| [OMB_MPICH_CE](../checks/containers/container_engine/omb.py)<br>• %test_name=collective/osu_alltoall | OSU Micro-benchmarks for MPICH/CE (Point-to-Point and All-to-All) | [containers/container_engine](../checks/containers/container_engine/) |
+| [OMB_OMPI_CE](../checks/containers/container_engine/omb.py)<br>• %test_name=pt2pt/osu_bw | OSU Micro-benchmarks for OpenMPI/CE (Point-to-Point and All-to-All) | [containers/container_engine](../checks/containers/container_engine/) |
+| [OMB_OMPI_CE](../checks/containers/container_engine/omb.py)<br>• %test_name=collective/osu_alltoall | OSU Micro-benchmarks for OpenMPI/CE (Point-to-Point and All-to-All) | [containers/container_engine](../checks/containers/container_engine/) |
+| [CUDA_MPS_CE](../checks/containers/container_engine/cuda_mps.py) | Check for CUDA MPS with CE | [containers/container_engine](../checks/containers/container_engine/) |
+| [dlaf_check_uenv](../checks/libraries/dlaf/dlaf.py)<br>• %test_name=gen_eigensolver | — | [libraries/dlaf](../checks/libraries/dlaf/) |
+| [dlaf_check_uenv](../checks/libraries/dlaf/dlaf.py)<br>• %test_name=eigensolver | — | [libraries/dlaf](../checks/libraries/dlaf/) |
+| [Uenv_HDF5Test](../checks/libraries/io/hdf5.py)<br>• %lang=cpp | — | [libraries/io](../checks/libraries/io/) |
+| [Uenv_HDF5Test](../checks/libraries/io/hdf5.py)<br>• %lang=f90 | — | [libraries/io](../checks/libraries/io/) |

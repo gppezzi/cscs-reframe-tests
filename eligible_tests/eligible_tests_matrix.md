@@ -1,6 +1,6 @@
 ## Test Coverage Matrix
 
-- Generated: `2026-06-03 10:07:44 +0200`
+- Generated: `2026-06-03 11:00:41 +0200`
 
 ### apps/ascent
 
@@ -181,6 +181,8 @@
 
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
+| [CPE_HDF5Test](../checks/libraries/io/hdf5.py)<br>• %lang=cpp | ✅ | ✅ | ❌ | ❌ |
+| [CPE_HDF5Test](../checks/libraries/io/hdf5.py)<br>• %lang=f90 | ✅ | ✅ | ❌ | ❌ |
 | [Uenv_HDF5Test](../checks/libraries/io/hdf5.py)<br>• %lang=cpp | ✅ | ✅ | ✅ | ✅ |
 | [Uenv_HDF5Test](../checks/libraries/io/hdf5.py)<br>• %lang=f90 | ✅ | ✅ | ✅ | ✅ |
 
@@ -344,6 +346,28 @@
 
 | Test name | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |-----------|-----------|-----------|-----------|-----------|
+| [EnvVariableConfigTest](../checks/system/integration/v-cluster_config.py)<br>• %envs_info=('APPS', '/capstor/apps/cscs/daint') | ✅ | ✅ | ✅ | ✅ |
+| [EnvVariableConfigTest](../checks/system/integration/v-cluster_config.py)<br>• %envs_info=('SCRATCH', '/capstor/scratch/cscs/') | ✅ | ✅ | ✅ | ✅ |
+| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('/users', 'nfs') | ✅ | ✅ | ✅ | ✅ |
+| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('capstor/scratch/cscs', 'lustre') | ✅ | ✅ | ✅ | ✅ |
+| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('capstor/store/cscs', 'lustre') | ✅ | ✅ | ✅ | ✅ |
+| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('iopsstor/scratch/cscs', 'lustre') | ✅ | ✅ | ✅ | ✅ |
+| [MountPointExistsTest](../checks/system/integration/v-cluster_config.py)<br>• %mount_info=('iopsstor/store/cscs', 'lustre') | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=ansible | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=bubblewrap | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=datacenter-gpu-manager | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=gcc12 | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=gcc12-c++ | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=gcc12-fortran | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=htop | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=libtool | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=lsof | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=ltrace | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=lua-lmod | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=netcat | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=nnn | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=pycxi-utils | ✅ | ✅ | ✅ | ✅ |
+| [PackagePresentTest](../checks/system/integration/v-cluster_config.py)<br>• %tools_info=wget | ✅ | ✅ | ✅ | ✅ |
 | [apps-path-check-eiger](../checks/system/integration/alps.py) | ❌ | ✅ | ❌ | ❌ |
 | [curl-external-access](../checks/system/integration/alps.py) | ✅ | ✅ | ✅ | ✅ |
 | [df-command-timeout](../checks/system/integration/alps.py) | ✅ | ✅ | ✅ | ✅ |
@@ -484,4 +508,4 @@
 
 | Metric | daint-maint | eiger-maint | santis-maint | clariden-maint |
 |--------|--------|--------|--------|--------|
-| TOTAL | 277 | 119 | 208 | 202 |
+| TOTAL | 301 | 143 | 230 | 224 |
