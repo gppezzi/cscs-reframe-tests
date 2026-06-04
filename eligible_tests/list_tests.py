@@ -32,6 +32,20 @@ def run_reframe(
     env: dict[str, str] | None = None,
     verbose: bool = False,
 ) -> tuple[int, str, str]:
+    """
+    Executes the 'reframe' command as a subprocess.
+
+    Args:
+        args: A list of command-line arguments to pass to the 'reframe' executable.
+        env: Optional dictionary of environment variables to provide to the subprocess.
+        verbose: If True, prints debug information regarding the command, environment, and output.
+
+    Returns:
+        A tuple containing (returncode, stdout, stderr).
+
+    Raises:
+        SystemExit: If the 'reframe' executable is not found in the system PATH.
+    """
     full_cmd = ["reframe", *args]
     if verbose:
         print(f"[DEBUG] Running command: {' '.join(full_cmd)}", flush=True)
@@ -80,19 +94,50 @@ def run_reframe(
 # -----------------------------------------------------------------------------
 
 def sanitize_for_filename(s: str) -> str:
+    """
+    Sanitizes a string for safe use as a filename component.
+
+    Replaces any character that is not alphanumeric, a period, an underscore, 
+    or a hyphen with an underscore.
+
+    Args:
+        s: The input string to sanitize.
+
+    Returns:
+        A sanitized version of the string. Returns "unknown" if the resulting 
+        string is empty.
+    """
     s = (s or "").strip()
     return re.sub(r"[^A-Za-z0-9._-]+", "_", s) or "unknown"
 
 
 def truncate_filename_part(s: str, max_len: int = 60) -> str:
+    """
+    Truncates a string to a maximum length and removes trailing separators.
+
+    Args:
+        s: The input string to truncate.
+        max_len: The maximum allowed length. Defaults to 60.
+
+    Returns:
+        The truncated string, with any trailing underscores, hyphens, or 
+        periods removed to ensure a clean filename.
+    """
     s = (s or "").strip()
     return s if len(s) <= max_len else s[:max_len].rstrip("_-.")
 
 
 def extract_tag_from_extra(extra: list[str]) -> Optional[str]:
-    """Extract `--tag` from passthrough args.
+    """
+    Extracts a tag expression from the list of passthrough arguments.
 
-    Supports both `--tag=EXPR` and `--tag EXPR` forms.
+    Supports both '--tag=EXPR' and '--tag EXPR' (or '--tags EXPR') formats.
+
+    Args:
+        extra: A list of command-line arguments passed after the '--' separator.
+
+    Returns:
+        The extracted tag string if found; otherwise, None.
     """
     if not extra:
         return None
@@ -106,10 +151,17 @@ def extract_tag_from_extra(extra: list[str]) -> Optional[str]:
 
 
 def normalize_extra_args(extra: list[str]) -> list[str]:
-    """Normalize passthrough args for ReFrame.
+    """
+    Normalizes passthrough arguments for ReFrame.
 
-    This removes a leading `--` separator and strips any `--tag` or
-    `--tags` arguments so tags are not passed twice.
+    Removes the leading '--' separator if present and strips any '--tag' or
+    '--tags' arguments so that tags are not passed to ReFrame twice.
+
+    Args:
+        extra: A list of arguments passed after the '--' separator.
+
+    Returns:
+        A cleaned list of arguments ready for use in the Reint ReFrame command.
     """
     if extra and extra[0] == "--":
         extra = extra[1:]
@@ -138,9 +190,21 @@ def build_output_path(
     tag: Optional[str],
     output_dir: Optional[str] = None,
 ) -> Path:
-    """Create an output path with a suffixed filename.
+    """
+    Creates an output path with a suffixed filename based on the provided filters.
 
-    The filename will be: <stem>_<system>[_mode-<mode>][_tags-<tag>].md
+    The generated filename follows this pattern:
+    <stem>_<system>[_mode-<mode>][_tags-<tag>].md
+
+    Args:
+        base_output: The base filename or path (e.g., 'report.md').
+        system: The ReFrame system name.
+        mode: The execution mode (optional).
+        tag: The tag expression (optional).
+        output_dir: The directory where the file should be saved (optional).
+
+    Returns:
+        A Path object pointing to the newly constructed file.
     """
     script_dir = Path(__file__).resolve().parent
     out_dir = Path(output_dir) if output_dir else script_dir
@@ -167,7 +231,18 @@ def build_output_path(
 
 
 def build_reframe_out_path(md_path: Path) -> Path:
-    """Same filename as the Markdown file, but with '.reframe.out' suffix."""
+    """
+    Generates a path for the raw ReFrame output, mirroring the Markdown filename.
+
+    The resulting filename uses the same base name as the Markdown file but 
+    appends a '.reframe.out' suffix instead of '.md'.
+
+    Args:
+        md_path: The Path object of the Markdown report.
+
+    Returns:
+        A Path object pointing to the raw ReFrame output file.
+    """
     name = md_path.name
     if name.lower().endswith(".md"):
         base = name[:-3]
@@ -182,7 +257,26 @@ def build_reframe_out_path(md_path: Path) -> Path:
 
 def parse_reframe_json(text: str, verbose: bool = False) -> list[dict]:
     """
-    Parse ReFrame --describe JSON output into a list of items.
+    Parses the ReFrame '--describe' JSON output into a list of standardized dictionaries.
+
+    This function is designed to be robust; it attempts to find the JSON array 
+    within the text by locating the first '[' and the last ']', effectively 
+    ignating any ReFrame log messages or headers that might precede the JSON.
+
+    Args:
+        text: The raw string output from the ReFrame command.
+        verbose: If True, prints debug information about the parsing process.
+
+    Returns:
+        A list of dictionaries. Each dictionary contains:
+            - 'kind': (str) Always "check" in this context.
+            - 'display_name': (str) The name of the test.
+            - 'hashcode': (str) The unique hashcode for the test.
+            - 'file': (str) The path to the file where the test is defined.
+            - 'description': (str) The description of the test.
+
+    Raises:
+        ValueError: If the JSON is malformed or cannot be extracted from the input.
     """
     if not text or not text.strip():
         if verbose:
@@ -242,7 +336,21 @@ def parse_reframe_json(text: str, verbose: bool = False) -> list[dict]:
 # -----------------------------------------------------------------------------
 
 def normalize_table_cell(text: str | None) -> str:
-    """Table-safe: no physical newlines; escape pipes."""
+    """
+    Formats a string to be safe for use within a Markdown table cell.
+
+    The function performs the following transformations:
+    1. Converts `None` or empty strings to a dash ("—").
+    2. Normalizes all types of newlines to `\n`.
+    3. Replaces `\n` with HTML `<br>` tags to allow multi-line content in a single cell.
+    4. Escapes the pipe character (`|`) to prevent breaking the Markdown table structure.
+
+    Args:
+        text: The input string to format.
+
+    Returns:
+        A sanitized, Markdown-compatible string.
+    """
     if not text:
         return "—"
     s = str(text).replace("\r\n", "\n").replace("\r", "\n").strip()
@@ -253,7 +361,20 @@ def normalize_table_cell(text: str | None) -> str:
 
 
 def split_name_and_params(name: str) -> tuple[str, list[str]]:
-    """Extract %param=value tokens from display_name."""
+    """
+    Splits a test display name into its base name and its associated parameters.
+
+    The function identifies parameters starting with a '%' character and 
+    captures everything until the next '%' or the end of the string.
+
+    Args:
+        name: The display name string (e.g., "test_name %param1=val1 %param2=val:val2").
+
+    Returns:
+        A tuple containing:
+        - The base name (str): The name with all parameter tokens removed.
+        - The parameters (list[str]): A list of the extracted tokens (e.g., ['%param1=val1', ...]).
+    """
     s = (name or "").strip()
     if not s:
         return "—", []
@@ -264,14 +385,38 @@ def split_name_and_params(name: str) -> tuple[str, list[str]]:
 
 
 def params_inline_lines(params: list[str]) -> str:
-    """Render params as <br> bullet lines."""
+    """
+    Converts a list of parameters into a single string of HTML-formatted bullet points.
+
+    This is used to display multiple parameters within a single Markdown table cell,
+    using `<br>• ` to create a vertical list effect.
+
+    Args:
+        params: A list of parameter strings (e.g., ['%param1=val1', '%param2=val2']).
+
+    Returns:
+        A single string containing the bulleted parameters, or an empty string 
+        if the input list is empty.
+    """
     if not params:
         return ""
     return "".join(f"<br>• {normalize_table_cell(p)}" for p in params)
 
 
 def checks_relative_path(file_path: str) -> Optional[str]:
-    """Return relative path starting at checks/"""
+    """
+    Extracts the portion of a file path relative to the 'checks/' directory.
+
+    This helps in normalizing paths so that the report focuses on the 
+    internal project structure rather than absolute system paths.
+
+    Args:
+        file_path: The full or partial path to the test file.
+
+    Returns:
+        A string representing the path starting from 'checks/...' 
+        (e.g., 'checks/cpu/test.py'), or None if 'checks/' is not found in the path.
+    """
     if not file_path:
         return None
     norm = file_path.replace("\\", "/")
@@ -285,6 +430,19 @@ def checks_relative_path(file_path: str) -> Optional[str]:
 
 
 def category_from_checks_rel(rel: Optional[str]) -> str:
+    """
+    Determines the category path from a relative 'checks/' path string.
+
+    If the path starts with 'checks/', this function extracts the subdirectories
+    located between 'checks/' and the final filename.
+
+    Args:
+        rel: A relative path string (e.g., 'checks/system/gssr/test.py').
+
+    Returns:
+        A string of the category subfolders (e.g., 'system/gssr'), or '—' 
+        if the path is invalid or contains no intermediate folders.
+    """
     if not rel:
         return "—"
     parts = rel.split("/")
@@ -295,14 +453,32 @@ def category_from_checks_rel(rel: Optional[str]) -> str:
 
 
 def md_link(text: str, href: str) -> str:
-    """Markdown link helper."""
+    """
+    Creates a standard Markdown hyperlink.
+
+    Args:
+        text: The display text to be shown in the link.
+        href: The URL or file path for the link destination.
+
+    Returns:
+        A string formatted as '[text](href)'.
+    """
     return f"[{text}]({href})"
 
 
 def category_cell(file_path: str | None) -> str:
     """
-    Category display: only the subfolders after checks/ (e.g. system/gssr)
-    Hyperlink target: ../checks/<category>/
+    Generates a Markdown hyperlink for the test category based on the file path.
+
+    The link target is constructed as `../checks/<category>/`, where `<category>`
+    is the subfolder structure found within the 'checks/' directory.
+
+    Args:
+        file_path: The path to the test file.
+
+    Returns:
+        A Markdown link to the category directory, or "—" if no valid
+        category can be extracted from the path.
     """
     rel = checks_relative_path(file_path) if file_path else None
     category = category_from_checks_rel(rel)
@@ -319,9 +495,20 @@ def test_name_cell(
     file_path: Optional[str],
 ) -> str:
     """
-    Show the actual test name (not filename), with parameter bullets
-    underneath. The test name itself is linked to the check's defining file
-    (../checks/.../file.py).
+    Formats the test name for display in a Markdown table cell.
+
+    The function extracts parameters from the display name, adds a prefix 
+    ("↳ ") if the test is of kind "related", and creates a hyperlink 
+    to the source file if a valid path is provided.
+
+    Args:
+        display_name: The raw name of the test (including any %param tokens).
+        kind: The classification of the test (e.g., "check" or "related").
+        file_path: The file path where the test is defined.
+
+    Returns:
+        A Markdown-formatted string containing the linked name and 
+        parameter bullets underneath.
     """
     base, params = split_name_and_params(display_name)
     prefix = "↳ " if kind == "related" else ""
@@ -344,6 +531,21 @@ def build_preamble(
     tag: Optional[str],
     found: Optional[int],
 ) -> str:
+    """
+    Constructs the Markdown preamble section containing report metadata.
+
+    This section lists the filters used (system, mode, tags), the total
+    number of tests found, and the timestamp of when the report was generated.
+
+    Args:
+        system: The ReFrame system name.
+        mode: The execution mode (optional).
+        tag: The tag expression (optional).
+        found: The number of tests matched by the filters (optional).
+
+    Returns:
+        A string formatted as a Markdown-compatible list of metadata.
+    """
     lines = ["- Filters:"]
     lines.append(f"  - system: `{system}`")
     if mode:
@@ -362,6 +564,24 @@ def write_markdown(items: list[dict],
                    mode: Optional[str],
                    tag: Optional[str],
                    found_count: Optional[int]):
+    """
+    Generates and writes the final Markdown report to the specified path.
+
+    This function constructs the Markdown table by iterating through the 
+    provided test items, formatting each row with the test name, 
+    description, and category, and then writes the complete content to disk.
+
+    Args:
+        items: A list of dictionaries containing the parsed ReFrame test data.
+        output_path: The Path object where the Markdown file will be saved.
+        system: The ReFrame system name.
+        mode: The execution mode used for the report.
+        tag: The tag expression used for the report.
+        found_count: The total number of tests found during the execution.
+
+    Returns:
+        None
+    """
     lines = [
         f"## Eligible ReFrame Tests on {system}",
         "",
@@ -386,7 +606,22 @@ def write_markdown(items: list[dict],
 
 def run_matrix_mode(args, env: dict[str, str] | None = None):
     """
-    Matrix mode: build a cross-system view of eligible tests.
+    Executes the logic for generating a "Matrix Mode" report.
+
+    This function iterates through a list of specified targets (defined via
+    '--matrix-mode' or '--matrix-tag'), runs 'reframe --describe' for each,
+    and aggregates the results to create a cross-referenced Markdown table.
+    The final report shows which tests are present/eligible in each target
+    column, organized by their directory category, and includes a summary 
+    of total counts per target.
+
+    Args:
+        args: The parsed command-line arguments (argparse.Namespace).
+        env: Optional dictionary of environment variables to use when
+             running the ReFrame subprocess.
+
+    Returns:
+        None
     """
 
     print("[INFO] Running matrix mode")
@@ -598,6 +833,26 @@ def run_matrix_mode(args, env: dict[str, str] | None = None):
 # -----------------------------------------------------------------------------
 
 def main():
+    """
+    The main entry point of the script.
+
+    This function performs the following high-level steps:
+    1. Parses and validates command-line arguments using argparse.
+    2. Validates existence of provided file paths and configuration directories.
+    3. Configures the environment variables required for UENV-specific 
+       ReFrame execution (e.g., RFM_UENV_RECIPES_DIR).
+    4. Determines the execution mode:
+       - Matrix Mode: If '--matrix-mode' or '--matrix-tag' are provided, 
+         it delegates execution to `run_matrix_mode`.
+       - Single Target Mode: Otherwise, it constructs a single 'reframe --describe' 
+         command for a specific system/mode/tag and generates a standard report.
+    5. Orchestrates the execution of the ReFrame command, handles potential 
+       subprocess errors, and writes the final Markdown report(s) to disk.
+
+    Raises:
+        SystemExit: If required arguments are missing, if provided paths do 
+                    not exist, or if the ReFrame command fails.
+    """
     ap = argparse.ArgumentParser(
         description=(
             "Generate Markdown report by parsing ReFrame `--describe` JSON output."
