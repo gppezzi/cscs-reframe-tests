@@ -41,8 +41,8 @@ class ReportOrchestrator:
         else:
             try:
                 data = self.executor.parse_json(result.stdout)
-            except Exception as e:
-                print(f"ERROR: Failed to parse ReFrame output: {e}")
+            except ValueError as e:
+                print(f"ERROR: {e}")
                 data = []
 
         filename = self.builder.build_output_filename(system, mode, tag if tag else "")
@@ -79,8 +79,8 @@ class ReportOrchestrator:
                         all_results.append(item)
                     if clean_target not in processed_targets_ordered:
                         processed_targets_ordered.append(clean_target)
-                except Exception as e:
-                    print(f"ERROR: Failed to parse JSON for target {clean_target}: {e}")
+                except ValueError as e:
+                    print(f"ERROR: {e}")
                     any_failures = True
             else:
                 self._report_failure(f"Matrix Target ({clean_target})", cmd, result)
