@@ -1,30 +1,65 @@
 import os
+import datetime
+import re
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 from collections import defaultdict
+from urllib.parse import quote
 
 from .utils import StringUtils
 
 class ReportGenerator(ABC):
+    """Base class for generating report files from test data.
+
+    Provides common utilities for string normalization and path handling used by
+    specific renderer implementations.
+    """
+
     @abstractmethod
-    def generate(self, data: List[Dict[str, Any]], path: Path, context: Dict[str, Any]):
+    def generate(self, data: List[Dict[str, Any]], path: Path, context: Dict[str, Any]) -> None:
+        """Generates a report file at the specified path.
+
+        Args:
+            data (List[Dict[str, Any]]): The list of test data entries to include in the report.
+            path (Path): The output destination file path.
+            context (Dict[str, Any]): Metadata and configuration for the current run.
+        """
         pass
 
     def normalize_table_string(self, text: str) -> str:
+        """Normalizes a string to be safe for use in Markdown tables.
+
+        Args:
+            text (str): The raw input string.
+
+        Returns:
+            str: The normalized string with table-breaking characters removed or replaced.
+        """
         return StringUtils.normalize_table_string(text)
 
-    def split_name_and_params(self, test_name: str) -> tuple:
-        from typing import Tuple
-        res = StringUtils.split_name_and_params(test_name)
-        return res
+    def split_name_and_params(self, test_name: str) -> Tuple[str, List[str]]:
+        """Splits a test name from its associated parameters.
+
+        Args:
+            test_name (str): The full test name string including parameters (e.g., 'TestName %param1 %param2').
+
+        Returns:
+            Tuple[str, List[str]]: A tuple containing the base test name and a list of parameters.
+        """
+        return StringUtils.split_name_and_params(test_name)
 
 class SingleModeRenderer(ReportGenerator):
-    def generate(self, data: List[Dict[str, Any]], path: Path, context: Dict[str, Any]) -> None:
-        import datetime
-        from urllib.parse import quote
-        import re
+    """Renderer for creating a detailed report for a single system/configuration."""
 
+    def generate(self, data: List[Dict[str, Any]], path: Path, context: Dict[str, Any]) -> None:
+        """Generates a Markdown report listing eligible tests for a specific filter set.
+
+        Args:
+            data (List[Dict[str, Any]]): The test data to render.
+            path (Path): Output file path.
+            context (Dict[str, Any]): Context containing 'system', 'mode', and 'tag'.
+        """
         system = context.get("system", "unknown")
         mode = context.get("mode", "")
         tag = context.get("tag", "")
@@ -48,7 +83,8 @@ class SingleModeRenderer(ReportGenerator):
         content.append("| Test name | Description | Category |")
         content.append("|----------|-------------|----------|")
 
-        def get_rel_path(f_path):
+        def get_rel_path(f_path: str) -> str | None:
+            """Extracts a relative path from the full file path."""
             if not f_path:
                 return None
             norm = f_path.replace("\\", "/")
@@ -58,7 +94,8 @@ class SingleModeRenderer(ReportGenerator):
                 return "checks/" + norm.split("checks/")[-1]
             return None
 
-        def get_category(rel_path):
+        def get_category(rel_path: str | None) -> str:
+            """Determines the category from a relative path."""
             if not rel_path:
                 return "—"
             parts = rel_path.split("/")
@@ -70,9 +107,7 @@ class SingleModeRenderer(ReportGenerator):
         for test in data:
             display_name = test.get("display_name", "Unknown")
             file_path = test.get("file", "")
-            description = test.get("description", "—")
-            if not description:
-                description = "—"
+            description = test.get("description", "—") or "—"
             
             # Formatting Test Name and Params
             base = re.sub(r"\s*%.*?(?=\s%|$)", "", display_name).strip()
@@ -109,12 +144,16 @@ class SingleModeRenderer(ReportGenerator):
             f.write("\n".join(content))
 
 class MatrixModeRenderer(ReportGenerator):
+    """Renderer for creating a coverage matrix across multiple systems."""
+
     def generate(self, data: List[Dict[str, Any]], path: Path, context: Dict[str, Any]) -> None:
-        import datetime
-        import re
-        from urllib.parse import quote
-        from collections import defaultdict
-        
+        """Generates a Markdown coverage matrix.
+
+        Args:
+            data (List[Dict[str, Any]]): The test data to render.
+            path (Path): Output file path.
+            context (Dict[str, Any]): Context containing 'targets'.
+        """
         timestamp = datetime.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z")
         content = ["## Test Coverage Matrix", "", f"- Generated: `{timestamp}`", ""]
 
@@ -126,6 +165,7 @@ class MatrixModeRenderer(ReportGenerator):
         for t in targets:
             label = t.split(':')[0] if ':' in t else t
             labels.append(label)
+            
         grouped_tests = defaultdict(list)
         target_counts = {t: 0 for t in targets}
 
@@ -207,13 +247,10 @@ class MatrixModeRenderer(ReportGenerator):
 
                 if params:
                     bullets = "".join(f"<br>• {self.normalize_table_string(p_param)}" for p_param in params)
-                    # Note: fixing parameter variable name to avoid collision with 'params' list
                     formatted_name += bullets
 
                 row_cells = [formatted_name]
                 for target in targets:
-                    # We check existence against the full entry string or resolved system 
-                    # depending on how you implemented your lookup.
                     exists = existence_lookup.get((display_name, file_path, target), False)
                     if exists:
                         target_counts[target] += 1

@@ -4,11 +4,30 @@ from typing import List, Optional
 from .models import ReFrameReporterConfig
 
 class CommandBuilder:
+    """Constructs the CLI commands required by ReFrame for reporting and metadata extraction."""
+
     def __init__(self, config: ReFrameReporterConfig):
+        """
+        Initializes the CommandBuilder with a configuration object.
+
+        Args:
+            config (ReFrameReporterConfig): The reporter configuration settings.
+        """
         self.config = config
 
     def build_reframe_cmd(self, system: str, mode: str, tag: str, extra_args: List[str]) -> List[str]:
-        """Constructs the ReFrame command with all necessary flags and arguments."""
+        """
+        Constructs the ReFrame command with all necessary flags and arguments.
+
+        Args:
+            system (str): The target system name.
+            mode (str): The execution mode.
+            tag (str): The filtering tag.
+            extra_args (List[str]): Additional CLI arguments provided by the user.
+
+        Returns:
+            List[str]: The complete command as a list of strings.
+        """
         # 1. Start with base command
         cmd = ["reframe"]
         
@@ -38,13 +57,35 @@ class CommandBuilder:
         return cmd
 
     def build_rel_reframe_cmd(self, system: str, mode: str, tag: str, extra_args: List[str], target: str) -> List[str]:
-        """Special builder for matrix targets to append the specific target string."""
+        """
+        Special builder for matrix targets to append the specific target string.
+
+        Args:
+            system (str): The base system name.
+            mode (str): The execution mode.
+            tag (str): The filtering tag.
+            extra_args (List[str]): Additional CLI arguments.
+            target (str): The specific target identifier for the matrix run.
+
+        Returns:
+            List[str]: The complete command including the target override.
+        """
         base_cmd = self.build_reframe_cmd(system, mode, tag, extra_args)
         return base_cmd + ["--system", target]
 
     def build_output_filename(self, system: str, mode: str, tag: str) -> str:
-        """Constructs a sanitized and truncated filename for the report following legacy standards.
+        """
+        Constructs a sanitized and truncated filename for the report following legacy standards.
+
         Format: [base_name]_[system]_mode-[mode]_tags-[tag].[ext]
+
+        Args:
+            system (str): The target system name or "matrix".
+            mode (str): The execution mode.
+            tag (str): The filtering tag.
+
+        Returns:
+            str: The formatted filename string.
         """
         from .utils import StringUtils
         from pathlib import Path
@@ -75,6 +116,15 @@ class CommandBuilder:
         return filename
 
     def extract_tag_from_extra(self, extra_args: List[str]) -> Optional[str]:
+        """
+        Extracts the value of the --tag flag from a list of arguments.
+
+        Args:
+            extra_args (List[str]): The list of command line arguments.
+
+        Returns:
+            Optional[str]: The tag value if found, otherwise None.
+        """
         for i, arg in enumerate(extra_args):
             if arg.startswith("--tag="):
                 return arg.split("=", 1)[1]
@@ -83,6 +133,16 @@ class CommandBuilder:
         return None
 
     def extract_param_from_extra(self, extra_args: List[str], flag: str) -> Optional[str]:
+        """
+        Extracts the value of a specific flag from a list of arguments.
+
+        Args:
+            extra_args (List[str]): The list of command line arguments.
+            flag (str): The flag to search for (e.g., '--system').
+
+        Returns:
+            Optional[str]: The value following the flag if found, otherwise None.
+        """
         for i, arg in enumerate(extra_args):
             if arg == flag and i + 1 < len(extra_args):
                 return extra_args[i + 1]
@@ -91,6 +151,16 @@ class CommandBuilder:
         return None
 
     def _normalize_extra(self, extra_args: List[str]) -> List[str]:
+        """
+        Removes redundant tags and the '--' separator from user-provided arguments 
+        to avoid conflicts with the automated builder logic.
+
+        Args:
+            extra_args (List[str]): The raw list of additional arguments.
+
+        Returns:
+            List[str]: A cleaned list of arguments.
+        """
         if not extra_args:
             return []
         cleaned = list(extra_args)
