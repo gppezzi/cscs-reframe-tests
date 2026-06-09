@@ -28,7 +28,7 @@ class ReportOrchestrator:
         os.makedirs(path, exist_ok=True)
         return path
 
-    def run_single_mode(self, system: str, mode: str, tag: str, extra_args: List[str]):
+    def run_single_mode(self, system: str, mode: str, tag: str, extra_args: List[str]) -> Path:
         """Executes a single ReFrame command and generates a report."""
         cmd = self.builder.build_reframe_cmd(system, mode, tag, extra_args)
         env = self._prepare_env(system)
@@ -57,7 +57,7 @@ class ReportOrchestrator:
         self.single_renderer.generate(data, output_path, context)
         return output_path
 
-    def run_matrix_mode(self, system: str, mode: str, tag: str, targets: List[str], extra_args: List[str]):
+    def run_matrix_mode(self, system: str, mode: str, tag: str, targets: List[str], extra_args: List[str]) -> Path:
         """Executes ReFrame for multiple targets and aggregates results."""
         all_results = []
         processed_targets_ordered = []
@@ -65,8 +65,6 @@ class ReportOrchestrator:
 
         for target in targets:
             clean_target = target.strip()
-            # Extract the actual system name for execution (the part after ':')
-            # If no ':' is present, use the target as-is.
             label = clean_target.split(':')[0] if ':' in clean_target else clean_target
             exec_system = clean_target.split(':')[1] if ':' in clean_target else clean_target
 
@@ -80,8 +78,6 @@ class ReportOrchestrator:
                 try:
                     data = self.executor.parse_json(result.stdout)
                     for item in data:
-                        # IMPORTANT: We attach the 'clean_target' (e.g., 'daint-prod:daint') 
-                        # to the result, NOT just the system name.
                         item["target"] = clean_target 
                         all_results.append(item)
                     if clean_target not in processed_targets_ordered:
@@ -93,7 +89,6 @@ class ReportOrchestrator:
                 self._report_failure(f"Matrix Target ({clean_target})", cmd, result)
                 any_failures = True
 
-        # Build correct dynamic filename
         filename = self.builder.build_output_filename("matrix", mode, tag if tag else "")
         target_dir = self._get_target_dir()
         output_path = target_dir / filename
@@ -107,7 +102,7 @@ class ReportOrchestrator:
         self.matrix_renderer.generate(all_results, output_path, context)
         return output_path
 
-    def _report_failure(self, context_label: str, cmd: List[str], result: Any):
+    def _report_failure(self, context_label: str, cmd: List[str], result: Any) -> None:
         """Detailed error reporting for failed ReFrame executions."""
         print(f"\n{'!'*20} ERROR {'!'*20}")
         print(f"Context: {context_label}")
@@ -119,8 +114,8 @@ class ReportOrchestrator:
             print(f"\n--- STDERR --- \n{result.stderr}")
         print(f"{'!'*49}\n")
 
-    def _run_and_save_raw(self, cmd: List[str], env: Dict[str, str]):
-        """Executes the command and preserves raw stdout/stderr to a file (overwrites each run)."""
+    def _run_and_save_raw(self, cmd: List[str], env: Dict[str, str]) -> Any:
+        """Executes the command and preserves raw stdout/stderr to a file."""
         result = self.executor.run(cmd, env=env)
         try:
             directory = self._get_target_dir()
@@ -132,8 +127,10 @@ class ReportOrchestrator:
             with open(raw_path, "w") as f:
                 f.write("=== COMMAND ===\n")
                 f.write(" ".join(cmd) + "\n")
+        except (OSError, IOError) as e:
+            print(f"WARNING: Failed to save raw output file due to I/O error: {e}")
         except Exception as e:
-            print(f"WARNING: Failed to save raw output: {e}")
+            print(f"WARNING: An unexpected error occurred while saving raw output: {e}")
         return result
 
     def _prepare_env(self, system: str) -> Dict[str, str]:
