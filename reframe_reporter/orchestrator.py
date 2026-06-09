@@ -65,9 +65,14 @@ class ReportOrchestrator:
 
         for target in targets:
             clean_target = target.strip()
-            cmd = self.builder.build_rel_reframe_cmd(system, mode, tag, extra_args, clean_target)
+            # Extract the actual system name for execution (the part after ':')
+            # If no ':' is present, use the target as-is.
+            label = clean_target.split(':')[0] if ':' in clean_target else clean_target
+            exec_system = clean_target.split(':')[1] if ':' in clean_target else clean_target
+
+            cmd = self.builder.build_rel_reframe_cmd(system, mode, tag, extra_args, exec_system)
             env = self._prepare_env(system)
-            print(f"Executing Matrix Target: {clean_target}")
+            print(f"Executing Matrix Target: {exec_system} (Label entry: {label})")
             print(f"Executing Matrix Mode Command: {' '.join(cmd)}")
             result = self._run_and_save_raw(cmd, env)
 
@@ -75,7 +80,9 @@ class ReportOrchestrator:
                 try:
                     data = self.executor.parse_json(result.stdout)
                     for item in data:
-                        item["target"] = clean_target
+                        # IMPORTANT: We attach the 'clean_target' (e.g., 'daint-prod:daint') 
+                        # to the result, NOT just the system name.
+                        item["target"] = clean_target 
                         all_results.append(item)
                     if clean_target not in processed_targets_ordered:
                         processed_targets_ordered.append(clean_target)

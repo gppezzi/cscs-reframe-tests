@@ -79,15 +79,8 @@ def main():
             targets = [] 
             labels = [] 
             for entry in args.matrix_mode.split(','):
-                parts = entry.strip().split(':')
-                if len(parts) >= 2:
-                    label, sys_name, mode_val = parts[0], parts[1], (parts[2] if len(parts)>2 else "single")
-                    targets.append(sys.name if hasattr(parts[1], 'name') else parts[1]) # Just use parts[1]
-                    # Correcting logic to match target list expectation:
-                    targets[-1] = parts[1]
-                    labels.append(label)
-                else:
-                    targets.append(entry)
+                # Expected format: label:system:mode 
+                targets.append(entry.strip())
             
             output_file = orchestrator.run_matrix_mode(parsed.system, "matrix", parsed.tag, targets, parsed.extra_args)
         else:

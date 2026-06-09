@@ -122,7 +122,10 @@ class MatrixModeRenderer(ReportGenerator):
         if not targets:
             return
             
-        labels = [t + "-maint" for t in targets]
+        labels = []
+        for t in targets:
+            label = t.split(':')[0] if ':' in t else t
+            labels.append(label)
         grouped_tests = defaultdict(list)
         target_counts = {t: 0 for t in targets}
 
@@ -143,6 +146,10 @@ class MatrixModeRenderer(ReportGenerator):
             file_path_str = test.get("file", "")
             group_key = "other"
             
+            # Extract the actual system name for path logic (the part after ':')
+            target_entry = test.get("target", "")
+            exec_system = target_entry.split(':')[1] if ':' in target_entry else target_entry
+
             rel_path = None
             if "/checks/" in file_path_str:
                 rel_path = "checks/" + file_path_str.split("/checks/")[-1]
@@ -156,8 +163,8 @@ class MatrixModeRenderer(ReportGenerator):
                     if folders:
                         group_key = "/".join(folders)
 
-            grouped_tests[group_key].append(test)
-            
+            grouped_tests[group_key].append(test) 
+
         sorted_groups = sorted(grouped_tests.keys())
 
         for group in sorted_groups:
@@ -176,6 +183,10 @@ class MatrixModeRenderer(ReportGenerator):
                 display_name = test.get("display_name", "Unknown")
                 file_path = test.get("file", "")
                 
+                # Extract the actual system name for link resolution/logic
+                target_entry = test.get("target", "")
+                exec_system = target_entry.split(':')[1] if ':' in target_entry else target_entry
+
                 rel_link = file_path
                 if "/checks/" in file_path:
                     rel_link = "../checks/" + file_path.split("/checks/")[-1]
@@ -195,11 +206,14 @@ class MatrixModeRenderer(ReportGenerator):
                     formatted_name = test_link_text
 
                 if params:
-                    bullets = "".join(f"<br>• {self.normalize_table_string(p)}" for p in params)
+                    bullets = "".join(f"<br>• {self.normalize_table_string(p_param)}" for p_param in params)
+                    # Note: fixing parameter variable name to avoid collision with 'params' list
                     formatted_name += bullets
 
                 row_cells = [formatted_name]
                 for target in targets:
+                    # We check existence against the full entry string or resolved system 
+                    # depending on how you implemented your lookup.
                     exists = existence_lookup.get((display_name, file_path, target), False)
                     if exists:
                         target_counts[target] += 1
