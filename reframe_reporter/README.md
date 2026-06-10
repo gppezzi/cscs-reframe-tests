@@ -157,7 +157,9 @@ When executing reports, filenames are automatically managed depending on filters
 ### Pre-req: Generate UENV inventories for the target systems
 
 ```bash
-python3 ./cscs-reframe-tests/reframe_reporter/generate_uenv_image_inventory.py --output-dir  ./cscs-reframe-tests/reframe_reporter/uenv-inventories/ --system daint,eiger,santis,clariden,starlex
+python3 ./cscs-reframe-tests/reframe_reporter/generate_uenv_image_inventory.py \
+--output-dir  ./cscs-reframe-tests/reframe_reporter/snapshots/uenv-inventories/ \
+--system daint,eiger,santis,clariden,starlex
 ```
 
 ### Create maintenance mode matrix
@@ -167,8 +169,8 @@ python3 cscs-reframe-tests/reframe_reporter/run_report.py \
 --matrix-mode daint-maint:daint:maintenance,eiger-maint:eiger:maintenance,santis-maint:santis:maintenance,clariden-maint:clariden:maintenance,starlex-maint:starlex:maintenance \
 -C cscs-reframe-tests/config/cscs.py -c cscs-reframe-tests/checks \
 -R --uenv-recipes-dir alps-uenv/recipes \
---uenv-image-inventory cscs-reframe-tests/reframe_reporter/tests/snapshots/uenv-inventory/uenv_image_inventory_daint_eiger_santis_clariden_starlex.json \
--o cscs-reframe-tests/reframe_reporter/tests/snapshots \
+--uenv-image-inventory cscs-reframe-tests/reframe_reporter/snapshots/uenv-inventories/uenv_image_inventory_daint_eiger_santis_clariden_starlex.json \
+-o cscs-reframe-tests/reframe_reporter/snapshots \
 -f eligible_tests_matrix_mode-maintenance.md
 ```
 
@@ -178,7 +180,7 @@ python3 cscs-reframe-tests/reframe_reporter/run_report.py \
 --matrix-mode daint-prod:daint:production,eiger-prod:eiger:production,santis-prod:santis:production,clariden-prod:clariden:production,starlex-prod:starlex:production \
 -C cscs-reframe-tests/config/cscs.py -c cscs-reframe-tests/checks \
 -R --uenv-recipes-dir alps-uenv/recipes \
---uenv-image-inventory cscs-reframe-tests/reframe_reporter/tests/uenv-inventories/uenv_image_inventory_daint_eiger_santis_clariden_starlex.json \
--o cscs-reframe-tests/reframe_reporter/tests/snapshots \
+--uenv-image-inventory cscs-reframe-tests/reframe_reporter/snapshots/uenv-inventories/uenv_image_inventory_daint_eiger_santis_clariden_starlex.json \
+-o cscs-reframe-tests/reframe_reporter/snapshots \
 -f eligible_tests_matrix_mode-production.md
 ```
