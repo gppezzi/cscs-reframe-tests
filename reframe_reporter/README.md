@@ -152,7 +152,7 @@ When executing reports, filenames are automatically managed depending on filters
 
 ---
 
-## How to create a test coverage matrix 
+## How to generate the coverage reports 
 
 ### Pre-req: Generate UENV inventories for the target systems
 
@@ -161,8 +161,19 @@ python3 ./cscs-reframe-tests/reframe_reporter/generate_uenv_image_inventory.py \
 --output-dir  ./cscs-reframe-tests/reframe_reporter/snapshots/uenv-inventories/ \
 --system daint,eiger,santis,clariden,starlex
 ```
+### Create list for daint only
+```bash
+python3 cscs-reframe-tests/reframe_reporter/run_report.py \
+--system daint --mode production \
+-C cscs-reframe-tests/config/cscs.py -c cscs-reframe-tests/checks \
+-R --uenv-recipes-dir alps-uenv/recipes \
+--uenv-image-inventory cscs-reframe-tests/reframe_reporter/snapshots/uenv-inventories/uenv_image_inventory_daint.json \
+-f cscs-reframe-tests/reframe_reporter/snapshots/eligible_tests_daint_mode-production.md
+```
 
-### Create maintenance mode matrix
+### Coverage Matrix for Daint, Eiger, Santis, Claride & Starlex
+
+#### Maintenance 
 
 ```bash
 python3 cscs-reframe-tests/reframe_reporter/run_report.py \
@@ -170,17 +181,26 @@ python3 cscs-reframe-tests/reframe_reporter/run_report.py \
 -C cscs-reframe-tests/config/cscs.py -c cscs-reframe-tests/checks \
 -R --uenv-recipes-dir alps-uenv/recipes \
 --uenv-image-inventory cscs-reframe-tests/reframe_reporter/snapshots/uenv-inventories/uenv_image_inventory_daint_eiger_santis_clariden_starlex.json \
--o cscs-reframe-tests/reframe_reporter/snapshots \
--f eligible_tests_matrix_mode-maintenance.md
+-f cscs-reframe-tests/reframe_reporter/snapshots/eligible_tests_matrix_mode-maintenance.md
 ```
 
-### Create production mode matrix
+#### Production 
 ```bash
 python3 cscs-reframe-tests/reframe_reporter/run_report.py \
 --matrix-mode daint-prod:daint:production,eiger-prod:eiger:production,santis-prod:santis:production,clariden-prod:clariden:production,starlex-prod:starlex:production \
 -C cscs-reframe-tests/config/cscs.py -c cscs-reframe-tests/checks \
 -R --uenv-recipes-dir alps-uenv/recipes \
 --uenv-image-inventory cscs-reframe-tests/reframe_reporter/snapshots/uenv-inventories/uenv_image_inventory_daint_eiger_santis_clariden_starlex.json \
--o cscs-reframe-tests/reframe_reporter/snapshots \
--f eligible_tests_matrix_mode-production.md
+-f cscs-reframe-tests/reframe_reporter/snapshots/eligible_tests_matrix_mode-production.md
+```
+
+#### Maintenance & Production
+
+```bash
+python3 cscs-reframe-tests/reframe_reporter/run_report.py \
+--matrix-mode daint-maint:daint:maintenance,daint-prod:daint:production,eiger-maint:eiger:maintenance,eiger-prod:eiger:production,santis-maint:santis:maintenance,santis-prod:santis:production,clariden-maint:clariden:maintenance,clariden-prod:clariden:production,starlex-maint:starlex:maintenance,starlex-prod:starlex:production \
+-C cscs-reframe-tests/config/cscs.py -c cscs-reframe-tests/checks \
+-R --uenv-recipes-dir alps-uenv/recipes \
+--uenv-image-inventory cscs-reframe-tests/reframe_reporter/snapshots/uenv-inventories/uenv_image_inventory_daint_eiger_santis_clariden_starlex.json \
+-f cscs-reframe-tests/reframe_reporter/snapshots/eligible_tests_matrix_mode-production.md
 ```
