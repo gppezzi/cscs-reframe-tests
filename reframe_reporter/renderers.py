@@ -49,6 +49,66 @@ class ReportGenerator(ABC):
         """
         return StringUtils.split_name_and_params(test_name)
 
+    def _base_test_id(self, name: str) -> str:
+        """Strip parameter part from a test name."""
+        import re
+        return re.sub(r'<br>.*', '', name).strip()
+
+
+    def _normalize_test_name(self, name: str) -> str:
+        """Normalize prefixes so names match eligible-tests style."""
+        return name.replace('CPE_', '').replace('Uenv_', '')
+
+
+    def _extract_variant_details(self, name: str):
+        """Extract parameter lines from test name."""
+        parts = name.split('<br>')
+        return [p.strip('• ').strip() for p in parts[1:]]
+
+
+    def _render_collapsible_variants(self, variants):
+        """Render collapsible block listing parameter variants."""
+        if len(variants) <= 1:
+            return ""
+
+        lines = []
+        for v in variants:
+            details = self._extract_variant_details(v)
+            if details:
+                lines.append(f"- {' '.join(details)}")
+            else:
+                lines.append(f"- {v}")
+
+        inner = "\n".join(lines)
+
+        return (
+            "<details>\n"
+            f"<summary>Variants ({len(variants)})</summary>\n\n"
+            f"{inner}\n\n"
+            "</details>"
+        )
+    
+    def _group_tests_by_base(self, test_names):
+        from collections import defaultdict
+        import re
+
+        grouped = defaultdict(list)
+
+        for full_name in test_names:
+            # remove markdown link wrapper [text](link)
+            name = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", full_name)
+
+            # remove parameter part
+            name = re.split(r"<br>|•", name)[0]
+
+            # normalize spaces
+            name = name.strip()
+
+            grouped[name].append(full_name)
+
+        return grouped
+
+    
 class SingleModeRenderer(ReportGenerator):
     """Renderer for creating a detailed report for a single system/configuration."""
 
@@ -165,20 +225,35 @@ class MatrixModeRenderer(ReportGenerator):
         for t in targets:
             label = t.split(':')[0] if ':' in t else t
             labels.append(label)
-            
+
+        target_keys = labels
+
         grouped_tests = defaultdict(list)
-        target_counts = {t: 0 for t in targets}
+
+        target_counts = {target_key: 0 for target_key in target_keys}
+        raw_target_counts = {target_key: 0 for target_key in target_keys}
+
+        raw_seen = set()
 
         existence_lookup = {}
         unique_tests = {}
+
         for test in data:
             display_name = test.get("display_name", "Unknown")
             file_path = test.get("file", "")
-            target = test.get("target")
+            target = test.get("target", "")
             
-            key = (display_name, file_path, target)
+            target_key = target.split(':')[0] if ':' in target else target
+        
+            key = (display_name, file_path, target_key)
             existence_lookup[key] = True
             
+            raw_key = (display_name, file_path, target_key)
+            if raw_key not in raw_seen:
+                raw_seen.add(raw_key)
+                if target_key in raw_target_counts:
+                    raw_target_counts[target_key] += 1
+
             if (display_name, file_path) not in unique_tests:
                 unique_tests[(display_name, file_path)] = test
 
@@ -205,12 +280,33 @@ class MatrixModeRenderer(ReportGenerator):
 
             grouped_tests[group_key].append(test) 
 
-        sorted_groups = sorted(grouped_tests.keys())
+        # Build grouped structure using SAME logic as single-system
+        sorted_groups = {}
+
+        for category, tests_list in grouped_tests.items():
+            groups = defaultdict(list)
+
+            for test in tests_list:
+                display_name = test.get("display_name", "")
+
+                # SAME base extraction
+                base = re.sub(r"\s*%.*?(?=\s%|$)", "", display_name).strip()
+                base = base.replace("CPE_", "").replace("Uenv_", "")
+
+                if not base:
+                    base = display_name
+
+                # category is already handled by the outer loop
+                groups[base].append(test)
+
+            sorted_groups[category] = groups
 
         for group in sorted_groups:
             if group == "other" and not grouped_tests[group]:
                 continue
-            tests = grouped_tests[group]
+
+            base_groups = sorted_groups[group]
+
             content.append(f"### {group}")
             content.append("") 
             
@@ -219,54 +315,89 @@ class MatrixModeRenderer(ReportGenerator):
             content.append("| " + " | ".join(header) + " |")
             content.append(sep_str)
 
-            for test in sorted(tests, key=lambda x: (x.get("display_name", ""), x.get("file", ""))):
-                display_name = test.get("display_name", "Unknown")
+            for base_name in sorted(base_groups.keys()):
+                variants = base_groups[base_name]
+
+                # representative test
+                test = variants[0]
+
                 file_path = test.get("file", "")
-                
-                # Extract the actual system name for link resolution/logic
-                target_entry = test.get("target", "")
-                exec_system = target_entry.split(':')[1] if ':' in target_entry else target_entry
 
                 rel_link = file_path
                 if "/checks/" in file_path:
                     rel_link = "../checks/" + file_path.split("/checks/")[-1]
                 elif "checks/" in file_path:
-                     rel_link = "../" + file_path.replace("checks/", "", 1)
+                    rel_link = "../" + file_path.replace("checks/", "", 1)
 
-                base = re.sub(r"\s*%.*?(?=\s%|$)", "", display_name).strip()
-                if not base:
-                    base = display_name
-                params = re.findall(r"%.*?(?=\s%|$)", display_name)
+                # proper markdown link again
+                test_link_text = self.normalize_table_string(base_name)
 
-                test_link_text = self.normalize_table_string(base)
                 if rel_link:
                     href = quote(rel_link, safe="/._-")
                     formatted_name = f"[{test_link_text}]({href})"
                 else:
                     formatted_name = test_link_text
 
-                if params:
-                    bullets = "".join(f"<br>• {self.normalize_table_string(p_param)}" for p_param in params)
-                    formatted_name += bullets
+                # cleaner collapsible block
+                if len(variants) > 1:
+                    all_params = []
+                    for v in variants:
+                        dn = v.get("display_name", "")
+                        all_params.extend(re.findall(r"%.*?(?=\s%|$)", dn))
+
+                    unique_params = sorted(set(all_params))
+
+                    if unique_params:
+                        details = "".join(
+                            f"<br>- {self.normalize_table_string(p)}"
+                            for p in unique_params
+                        )
+
+                        formatted_name += (
+                            f"<br><details>"
+                            f"<summary>🔽 {len(variants)} variants</summary>"
+                            f"{details}</details>"
+                        )
 
                 row_cells = [formatted_name]
-                for target in targets:
-                    exists = existence_lookup.get((display_name, file_path, target), False)
+
+                for target_key in target_keys:
+                    exists = any(
+                        existence_lookup.get(
+                            (v.get("display_name", ""), v.get("file", ""), target_key),
+                            False
+                        )
+                        for v in variants
+                    )
+
                     if exists:
-                        target_counts[target] += 1
+                        target_counts[target_key] += 1
+
                     row_cells.append("✅" if exists else "❌")
+
                 content.append("| " + " | ".join(row_cells) + " |")
+
             content.append("")
 
         if target_counts:
             content.append("### Summary")
             content.append("")
+
             summary_header = ["Metric"] + labels
             summary_sep = "|" + ("--------|" * len(summary_header))
+
             content.append("| " + " | ".join(summary_header) + " |")
             content.append(summary_sep)
-            summary_row = ["TOTAL"] + [str(target_counts[t]) for t in targets]
-            content.append("| " + " | ".join(summary_row) + " |")
+
+            grouped_row = ["TOTAL (visible grouped rows)"] + [
+                str(target_counts[target_key]) for target_key in target_keys
+            ]
+            content.append("| " + " | ".join(grouped_row) + " |")
+
+            raw_row = ["TOTAL (raw ReFrame-selected tests)"] + [
+                str(raw_target_counts[target_key]) for target_key in target_keys
+            ]
+            content.append("| " + " | ".join(raw_row) + " |")
 
         with open(path, "w", encoding="utf-8") as f:
             f.write("\n".join(content))
