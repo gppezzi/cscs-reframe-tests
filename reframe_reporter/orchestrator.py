@@ -116,13 +116,21 @@ class ReportOrchestrator:
 
         for target in targets:
             clean_target = target.strip()
-            label = clean_target.split(':')[0] if ':' in clean_target else clean_target
-            exec_system = clean_target.split(':')[1] if ':' in clean_target else clean_target
 
-            cmd = self.builder.build_rel_reframe_cmd(system, mode, tag, extra_args, exec_system)
+            parts = clean_target.split(':')
+            label = parts[0] if len(parts) > 0 and parts[0] else clean_target
+            exec_system = parts[1] if len(parts) > 1 and parts[1] else system
+            exec_mode = parts[2] if len(parts) > 2 and parts[2] else mode
+
+            cmd = self.builder.build_rel_reframe_cmd(system, exec_mode, tag, extra_args, exec_system)
             env = self._prepare_env(system)
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Executing Matrix Target: {exec_system} (Label entry: {label})")
+
+            print(
+                f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] "
+                f"Executing Matrix Target: {exec_system} (Label entry: {label}, Mode: {exec_mode})"
+            )
             print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Executing Matrix Mode Command: {' '.join(cmd)}")
+
             result = self._run_and_save_raw(cmd, env)
 
             if result.returncode == 0:
