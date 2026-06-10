@@ -13,6 +13,52 @@ A modular Python tool designed to discover, analyze, and report on eligible ReFr
 * **Deterministic Artifact Retention**: Saves every generated report side-by-side with a timestamped `.reframe.out` log containing raw execution outputs for debugging and auditing.
 
 ---
+### 🔄 Workflow: Matrix Generation & UEnv Integration
+
+The reporter follows a multi-stage pipeline to transform raw ReFrame metadata and UEnv environment information into a structured compliance matrix.
+
+#### 1. Input Phase (Configuration)
+* **CLI Arguments**: The user provides parameters such as `--matrix-mode` (defining targets), `--uenv-recipes-dir`, and `--uenv-image-inventory`.
+* **Command Construction**: `CommandBuilder` parses these arguments and prepares the ReFrame command structure.
+
+#### 2. Enrichment Phase (Environment Injection)
+* **UEnv Integration**: Before execution, the `Orchestrator` injects critical UEnv paths into the subprocess environment:
+    * `RFM_UENV_RECIPES_DIR` $\leftarrow$ `--uenv-recipes-dir`
+    * `RFM_UENV_IMAGE_INVENTORY` $\leftarrow$ `--uenv-image-inventory`
+* This ensures that ReFrame's `--describe` output is contextually aware of the available software recipes.
+
+#### 3. Execution & Extraction Phase (ReFrame)
+* **Subprocess Execution**: The `Executor` runs `reframe --describe` for each target in the matrix.
+* **JSON Parsing**: The tool intercepts the standard output, isolates the JSON array within specific delimiters, and parses it into structured Python objects.
+
+#### 4. Aggregation & Rendering Phase (Reporting)
+* **Data Normalization**: Extracted metadata is normalized into a consistent schema.
+* **Matrix Comparison**: For matrix mode, the `MatrixModeRenderer` compares the presence of tests across different targets.
+* **Final Output**: A Markdown report is generated, featuring:
+    * ✅/❌ compliance indicators.
+    * Parameter breakdowns (e.g., `%compiler=gcc`).
+    * Organized test categories.
+
+```mermaid
+graph TD
+    subgraph "Input Phase"
+        A[CLI Arguments<br/>--matrix-mode, --uenv-*] --> B(CommandBuilder)
+        C[UEnv Recipes & Inventory] -.->|Injects Env Vars| B
+    end
+
+    subgraph "Execution Phase (ReFrame)"
+        B --> D{Executor}
+        D -->|Runs subprocess| E["reframe --describe<br/>(Target 1, Target 2, ...)"]
+        E -->|Raw JSON Output| F[JSON Parser]
+    end
+
+    subgraph "Aggregation & Rendering"
+        F --> G[Data Normalization]
+        G --> H[MatrixModeRenderer]
+        H --> I[Final Markdown Report<br/>with ✅/❌ Compliance]
+    end
+```
+---
 
 ## 🛠️ Project Architecture
 

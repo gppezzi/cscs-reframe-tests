@@ -32,7 +32,7 @@ class ReportOrchestrator:
         """Executes a single ReFrame command and generates a report."""
         cmd = self.builder.build_reframe_cmd(system, mode, tag, extra_args)
         env = self._prepare_env(system)
-        print(f"Executing Single Mode: {' '.join(cmd)}")
+        print(f"[INFO] Executing Single Mode: {' '.join(cmd)}")
         result = self._run_and_save_raw(cmd, env)
 
         if result.returncode != 0:
@@ -70,8 +70,8 @@ class ReportOrchestrator:
 
             cmd = self.builder.build_rel_reframe_cmd(system, mode, tag, extra_args, exec_system)
             env = self._prepare_env(system)
-            print(f"Executing Matrix Target: {exec_system} (Label entry: {label})")
-            print(f"Executing Matrix Mode Command: {' '.join(cmd)}")
+            print(f"[INFO] Executing Matrix Target: {exec_system} (Label entry: {label})")
+            print(f"[INFO] Executing Matrix Mode Command: {' '.join(cmd)}")
             result = self._run_and_save_raw(cmd, env)
 
             if result.returncode == 0:
