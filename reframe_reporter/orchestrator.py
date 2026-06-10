@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List
 from .models import ReFrameReporterConfig
@@ -8,6 +9,13 @@ from .renderers import SingleModeRenderer, MatrixModeRenderer
 
 class ReportOrchestrator:
     def __init__(self, config: ReFrameReporterConfig):
+        """
+        Initializes the ReportOrchestrator with the provided configuration.
+
+        Args:
+            config (ReFrameReporterConfig): The configuration object containing settings for 
+                output directories, check paths, environment variables, and other parameters.
+        """
         self.config = config
         self.builder = CommandBuilder(config)
         self.executor = ReFrameReporterExecutor()
@@ -15,7 +23,19 @@ class ReportOrchestrator:
         self.matrix_renderer = MatrixModeRenderer()
 
     def _get_target_dir(self) -> Path:
-        """Determines the target directory for output based on config."""
+        """
+        Determines the target directory for output based on the configuration.
+
+        Returns:
+            Path: The resolved path to use as the output directory. Defaults to the current 
+                directory if no specific paths are provided in the config.
+        
+        Determines the target directory for output based on the configuration.
+
+        Returns:
+            Path: The resolved path to use as the output directory. Defaults to the current 
+                directory if no specific paths are provided in the config.
+        """
         if self.config.output_dir:
             return self.post_process_path(self.config.output_dir)
         elif self.config.check_paths:
@@ -24,15 +44,34 @@ class ReportOrchestrator:
             return Path(".")
 
     def post_process_path(self, path: Path) -> Path:
-        """Ensures the output directory exists."""
+        """
+        Ensures the output directory exists by creating it if necessary.
+
+        Args:
+            path (Path): The path to the directory that should be ensured to exist.
+
+        Returns:
+            Path: The validated and created directory path.
+        """
         os.makedirs(path, exist_ok=True)
         return path
 
     def run_single_mode(self, system: str, mode: str, tag: str, extra_args: List[str]) -> Path:
-        """Executes a single ReFrame command and generates a report."""
+        """
+        Executes a single ReFrame command and generates a report.
+
+        Args:
+            system (str): The target system name.
+            mode (str): The execution mode (e.g., 'maintenance', 'production').
+            tag (str): An optional tag to identify the run.
+            extra_args (List[str]): Additional arguments to pass to ReFrame.
+
+        Returns:
+            Path: The path to the generated report file.
+        """
         cmd = self.builder.build_reframe_cmd(system, mode, tag, extra_args)
         env = self._prepare_env(system)
-        print(f"[INFO] Executing Single Mode: {' '.join(cmd)}")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Executing Single Mode: {' '.join(cmd)}")
         result = self._run_and_save_raw(cmd, env)
 
         if result.returncode != 0:
@@ -58,7 +97,19 @@ class ReportOrchestrator:
         return output_path
 
     def run_matrix_mode(self, system: str, mode: str, tag: str, targets: List[str], extra_args: List[str]) -> Path:
-        """Executes ReFrame for multiple targets and aggregates results."""
+        """
+        Executes ReFrame for multiple targets and aggregates the results into a matrix report.
+
+        Args:
+            system (str): The target system name.
+            mode (str): The execution mode (e.g., 'maintenance', 'production').
+            tag (str): An optional tag to identify the run.
+            targets (List[str]): A list of targets to execute, potentially in 'label:system' format.
+            extra_args (List[str]): Additional arguments to pass to ReFrame.
+
+        Returns:
+            Path: The path to the generated matrix report file.
+        """
         all_results = []
         processed_targets_ordered = []
         any_failures = False
@@ -70,8 +121,8 @@ class ReportOrchestrator:
 
             cmd = self.builder.build_rel_reframe_cmd(system, mode, tag, extra_args, exec_system)
             env = self._prepare_env(system)
-            print(f"[INFO] Executing Matrix Target: {exec_system} (Label entry: {label})")
-            print(f"[INFO] Executing Matrix Mode Command: {' '.join(cmd)}")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Executing Matrix Target: {exec_system} (Label entry: {label})")
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Executing Matrix Mode Command: {' '.join(cmd)}")
             result = self._run_and_save_raw(cmd, env)
 
             if result.returncode == 0:
