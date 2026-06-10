@@ -96,7 +96,7 @@ Provide multiple target entries to generate an aggregated test matrix. The `--ma
 **Example with multiple targets:**
 ```bash
 python3 run_report.py \
-   --matrix-mode "daint_gpu:daint:single,daint_cpu:daint:single,alps_nvgpu:alps:single" \
+   --matrix-mode "daint-maint:daint:maintenance,daint-prod:daint:production" \
    --tag maintenance \
    -C cscs-reframe-tests/config/cscs.py \
    -c cscs-reframe-tests/checks
