@@ -9,20 +9,20 @@ A modular Python tool designed to discover, analyze, and report on eligible ReFr
 * **Single-System Reporting**: Generates exhaustive Markdown lists of eligible tests for a targeted system, complete with parameterized test breakdowns, descriptions, and organized test categories.
 * **Dynamic Matrix Mode**: Automatically compares multiple test configurations or environment matrices, producing a cross-system compliance map (`✅`/`❌`) accompanied by summary metrics.
 * **Parameter Breakdown**: Transparently extracts internal ReFrame parameter injections (e.g., `%param=val`) from test strings and formats them into readable sub-bullets.
-* **UEnv Metadata Enrichment**: Built-in support to evaluate tests using local user environment (`UEnv`) recipe directory contexts and image inventories.
+* **uenv Metadata Enrichment**: Built-in support to evaluate tests using local user environment (`uenv`) recipe directory contexts and image inventories.
 * **Deterministic Artifact Retention**: Saves every generated report side-by-side with a timestamped `.reframe.out` log containing raw execution outputs for debugging and auditing.
 
 ---
-### 🔄 Workflow: Matrix Generation & UEnv Integration
+### 🔄 Workflow: Matrix Generation & uenv Integration
 
-The reporter follows a multi-stage pipeline to transform raw ReFrame metadata and UEnv environment information into a structured compliance matrix.
+The reporter follows a multi-stage pipeline to transform raw ReFrame metadata and uenv environment information into a structured compliance matrix.
 
 #### 1. Input Phase (Configuration)
 * **CLI Arguments**: The user provides parameters such as `--matrix-mode` (defining targets), `--uenv-recipes-dir`, and `--uenv-image-inventory`.
 * **Command Construction**: `CommandBuilder` parses these arguments and prepares the ReFrame command structure.
 
 #### 2. Enrichment Phase (Environment Injection)
-* **UEnv Integration**: Before execution, the `Orchestrator` injects critical UEnv paths into the subprocess environment:
+* **uenv Integration**: Before execution, the `Orchestrator` injects uenv paths into the subprocess environment:
     * `RFM_UENV_RECIPES_DIR` $\leftarrow$ `--uenv-recipes-dir`
     * `RFM_UENV_IMAGE_INVENTORY` $\leftarrow$ `--uenv-image-inventory`
 * This ensures that ReFrame's `--describe` output is contextually aware of the available software recipes.
@@ -35,7 +35,7 @@ The reporter follows a multi-stage pipeline to transform raw ReFrame metadata an
 * **Data Normalization**: Extracted metadata is normalized into a consistent schema.
 * **Matrix Comparison**: For matrix mode, the `MatrixModeRenderer` compares the presence of tests across different targets.
 * **Final Output**: A Markdown report is generated, featuring:
-    * ✅/❌ compliance indicators.
+    * ✅/❌ eligibility checkboxes.
     * Parameter breakdowns (e.g., `%compiler=gcc`).
     * Organized test categories.
 
@@ -43,7 +43,7 @@ The reporter follows a multi-stage pipeline to transform raw ReFrame metadata an
 graph TD
     subgraph "Input Phase"
         A[CLI Arguments<br/>--matrix-mode, --uenv-*] --> B(CommandBuilder)
-        C[UEnv Recipes & Inventory] -.->|Injects Env Vars| B
+        C[uenv Recipes & Inventory] -.->|Injects Env Vars| B
     end
 
     subgraph "Execution Phase (ReFrame)"
@@ -97,21 +97,20 @@ Provide multiple target entries to generate an aggregated test matrix. The `--ma
 ```bash
 python3 run_report.py \
    --matrix-mode "daint-maint:daint:maintenance,daint-prod:daint:production" \
-   --tag maintenance \
    -C cscs-reframe-tests/config/cscs.py \
    -c cscs-reframe-tests/checks
 ```
 
-### 3. Metadata Ingestion with User Environments (UEnv)
+### 3. Metadata Ingestion with User Environments (uenv)
 Run checks using dynamic software recipes without strictly demanding fully initialized software trees locally:
 ```bash
 python3 run_report.py \
+  --matrix-mode "daint-maint:daint:maintenance,daint-prod:daint:production" \
   --uenv-recipes-dir alps-uenv/recipes \
   --uenv-image-inventory alps-uenv/inventory.json \
-  --system daint \
   -C cscs-reframe-tests/config/cscs.py
 ```
-
+* **Note:** Requires creation of uenv inventory (see instructions below on how to generate uenv inventories).
 ---
 
 ## 📋 Command-Line Interface Reference
@@ -121,11 +120,11 @@ python3 run_report.py \
 | `--system` | `str` | Name of the ReFrame infrastructure partition (e.g., `daint`, `alps`). |
 | `--mode` | `str` | ReFrame configuration profile mode context (Defaults to `single`). |
 | `-C`, `--checks` | `path` | **Required**. File path or directory containing the target ReFrame configuration files. Can be passed multiple times. |
-| `-c`, `--config_dir` | `path` | Directory containing test configurations to forward directly into ReFrame. |
+| `-c`, `--config_dir` | `path` | **Required** Directory containing test configurations to forward directly into ReFrame. |
 | `-R`, `--recursive`| *Flag* | Instructs the framework to search for check directories recursively. |
 | `-f`, `--filename` | `str` | Custom base string for the output report (Defaults to `eligible_tests.md`). |
 | `-o`, `--output_dir` | `path` | Override path for outputs (Defaults to the checking script's root directory). |
-| `--uenv-recipes-dir`| `path` | Path leading to custom UEnv deployment recipes. |
+| `--uenv-recipes-dir`| `path` | Path leading to custom uenv deployment recipes. |
 | `--uenv-image-inventory`| `path`| Path to the dynamic UHM image inventory JSON file. |
 | `--matrix-mode` | `str` | Comma-separated list map for system testing targets (`label:system:mode`). |
 | `--matrix-tag` | `str` | Matrix entry argument filter (`label:arg`). Can be passed multiple times. |
@@ -135,20 +134,9 @@ python3 run_report.py \
 
 ---
 
-## 📊 Sample Output Format
+## Snapshots of coverage matrix
 
-When executing reports, filenames are automatically managed depending on filters to guarantee unique outputs (e.g., `eligible_tests_daint_mode-production_tags-maintenance.md` or `eligible_tests_matrix.md`).
-
-### Single-System View
-| Test name | Description | Category |
-| :--- | :--- | :--- |
-| `Legacy_App_Check`<br>• %compiler=gcc<br>• %nodes=2 | Validates MPI connectivity on production nodes. | `apps/physics` |
-
-### Matrix Compliance View
-### apps/physics
-| Test name | daint_gpu-maint | daint_cpu-maint | alps_nvgpu-maint |
-| :--- | :---: | :---: | :---: |
-| `Legacy_App_Check`<br>• %compiler=gcc | ✅ | ❌ | ✅ |
+* [https://github.com/eth-cscs/cscs-reframe-tests/reframe_reporter/snapshots](./snapshots)
 
 ---
 
