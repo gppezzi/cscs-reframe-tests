@@ -1,18 +1,21 @@
 # ReFrame Test Reporter
 
-A modular Python tool designed to discover, analyze, and report on eligible ReFrame tests by extracting structural metadata directly from `reframe --describe` JSON output. It allows teams to visualize test availability, system coverage, and parameter matrices.
+A modular Python tool for discovering, analyzing, and reporting eligible ReFrame tests by extracting structural metadata from `reframe --describe` JSON output.
 
 ---
 
 ## 🚀 Key Features
 
-* **Single-System Reporting**: Generates exhaustive Markdown lists of eligible tests for a targeted system, complete with parameterized test breakdowns, descriptions, and organized test categories.
-* **Dynamic Matrix Mode**: Automatically compares multiple test configurations or environment matrices, producing a cross-system compliance map (`✅`/`❌`) accompanied by summary metrics.
-* **Parameter Breakdown**: Transparently extracts internal ReFrame parameter injections (e.g., `%param=val`) from test strings and formats them into readable sub-bullets.
-* **uenv Metadata Enrichment**: Built-in support to evaluate tests using local user environment (`uenv`) recipe directory contexts and image inventories.
-* **Deterministic Artifact Retention**: Saves every generated report side-by-side with a timestamped `.reframe.out` log containing raw execution outputs for debugging and auditing.
+* **Single-System Reporting**: Generates comprehensive Markdown reports of eligible tests for a target system, complete with parameterized test breakdowns, descriptions, and organized test categories.
+* **Dynamic Matrix Mode**: Automatically compares multiple test configurations or environment matrices, producing a cross-system test eligibility matrix (✅/❌) with summary metrics.
+* **Parameter Breakdown**: Extracts internal ReFrame parameter injections (e.g., %param=val) and formats them into readable sub-bullets.
+* **uenv Metadata Enrichment**: Extends ReFrame test listing by cross-checking:
+  * `uenv image ls --json`
+  * `reframe.yaml` from [https://github.com/eth-cscs/alps-uenv](https://github.com/eth-cscs/alps-uenv)
+
 
 ---
+
 ### 🔄 Workflow: Matrix Generation & uenv Integration
 
 The reporter follows a multi-stage pipeline to transform raw ReFrame metadata and uenv environment information into a structured compliance matrix.
@@ -23,8 +26,8 @@ The reporter follows a multi-stage pipeline to transform raw ReFrame metadata an
 
 #### 2. Enrichment Phase (Environment Injection)
 * **uenv Integration**: Before execution, the `Orchestrator` injects uenv paths into the subprocess environment:
-    * `RFM_UENV_RECIPES_DIR` $\leftarrow$ `--uenv-recipes-dir`
-    * `RFM_UENV_IMAGE_INVENTORY` $\leftarrow$ `--uenv-image-inventory`
+    * `RFM_UENV_RECIPES_DIR` $\leftarrow$ `--uenv-recipes-dir` (ingests `reframe.yaml` data from the uenv recipes directory)
+    * `RFM_UENV_IMAGE_INVENTORY` $\leftarrow$ `--uenv-image-inventory` (ingests output from `uenv image ls --json`)
 * This ensures that ReFrame's `--describe` output is contextually aware of the available software recipes.
 
 #### 3. Execution & Extraction Phase (ReFrame)
@@ -66,7 +69,7 @@ The core logic is structured cleanly within a decoupled, single-responsibility l
 
 ```text
 reframe_reporter/
-├── cli.py         # Intercepts flags, sets defaults, and builds the initial schema configuration.
+├── cli.py         # Parses CLI flags, applies defaults, and builds the configuration schema.
 ├── models.py      # Structured dataclasses ensuring internal type-safety (ReFrameReporterConfig).
 ├── builder.py     # Constructs sanitized ReFrame sub-commands and handles complex file naming logic.
 ├── executor.py    # Subprocess layer featuring bracket-isolation logic to pull clean JSON from noisy logs.
@@ -78,7 +81,7 @@ reframe_reporter/
 
 ## 💻 Getting Started & Usage
 
-Run the reporter using the main entrance script (`run_report.py`).
+Run the reporter using the main entry script (`run_report.py`).
 
 ### 1. Single-System Mode
 Analyze a single target system configuration to list matching test profiles.
@@ -102,7 +105,8 @@ python3 run_report.py \
 ```
 
 ### 3. Metadata Ingestion with User Environments (uenv)
-Run checks using dynamic software recipes without strictly demanding fully initialized software trees locally:
+Perform uenv-aware test listing using a previously generated uenv image inventory.
+
 ```bash
 python3 run_report.py \
   --matrix-mode "daint-maint:daint:maintenance,daint-prod:daint:production" \
@@ -110,22 +114,25 @@ python3 run_report.py \
   --uenv-image-inventory alps-uenv/inventory.json \
   -C cscs-reframe-tests/config/cscs.py
 ```
-* **Note:** Requires creation of uenv inventory (see instructions below on how to generate uenv inventories).
+* **Requirements** 
+  * Creation of a uenv inventory (list of available uenvs on each vCluster)
+    * See instructions below for generating uenv inventories
+  * uenv recipes (from [alps-uenv](https://github.com/eth-cscs/alps-uenv))
 ---
 
 ## 📋 Command-Line Interface Reference
 
 | Argument / Flag | Input Type | Description |
 | :--- | :--- | :--- |
-| `--system` | `str` | Name of the ReFrame infrastructure partition (e.g., `daint`, `alps`). |
-| `--mode` | `str` | ReFrame configuration profile mode context (Defaults to `single`). |
-| `-C`, `--checks` | `path` | **Required**. File path or directory containing the target ReFrame configuration files. Can be passed multiple times. |
-| `-c`, `--config_dir` | `path` | **Required** Directory containing test configurations to forward directly into ReFrame. |
+| `--system`           | `str`  | **Required for single-system runs.** Name of the target system (e.g., `daint`, `alps`). |
+| `--mode`             | `str`  | CLI flag forwarded to ReFrame (e.g., `maintenance`, `production`). |
+| `-C`, `--checks`     | `path` | **Required.** Directory containing ReFrame *check* files. Can be specified multiple times. |
+| `-c`, `--config_dir` | `path` | **Required.** Directory containing *system* configuration files passed directly to ReFrame. |
 | `-R`, `--recursive`| *Flag* | Instructs the framework to search for check directories recursively. |
 | `-f`, `--filename` | `str` | Custom base string for the output report (Defaults to `eligible_tests.md`). |
 | `-o`, `--output_dir` | `path` | Override path for outputs (Defaults to the checking script's root directory). |
-| `--uenv-recipes-dir`| `path` | Path leading to custom uenv deployment recipes. |
-| `--uenv-image-inventory`| `path`| Path to the dynamic UHM image inventory JSON file. |
+| `--uenv-recipes-dir`| `path` | Repository containing the `reframe.yaml` files. |
+| `--uenv-image-inventory`| `path`| Path to the JSON file containing the inventory of uenvs. |
 | `--matrix-mode` | `str` | Comma-separated list map for system testing targets (`label:system:mode`). |
 | `--matrix-tag` | `str` | Matrix entry argument filter (`label:arg`). Can be passed multiple times. |
 | `-v`, `--verbose` | *Flag* | Enables verbose logging output. |
@@ -134,22 +141,22 @@ python3 run_report.py \
 
 ---
 
-## Snapshots of coverage matrix
+## Coverage Matrix Snapshots
 
 * [https://github.com/eth-cscs/cscs-reframe-tests/reframe_reporter/snapshots](./snapshots)
 
 ---
 
-## How to generate the coverage reports 
+## How to Generate Coverage Reports 
 
-### Pre-req: Generate UENV inventories for the target systems
+### Prerequisite: Generate UENV inventories for the target systems
 
 ```bash
 python3 ./cscs-reframe-tests/reframe_reporter/generate_uenv_image_inventory.py \
 --output-dir  ./cscs-reframe-tests/reframe_reporter/snapshots/uenv-inventories/ \
 --system daint,eiger,santis,clariden,starlex
 ```
-### List for Daint only
+### Single-System Report (Daint)
 
 ```bash
 python3 cscs-reframe-tests/reframe_reporter/run_report.py \
@@ -160,7 +167,7 @@ python3 cscs-reframe-tests/reframe_reporter/run_report.py \
 -o cscs-reframe-tests/reframe_reporter/snapshots
 ```
 
-### Coverage Matrix for Daint, Eiger, Santis, Claride & Starlex
+### Coverage Matrix for Daint, Eiger, Santis, Clariden & Starlex
 
 #### Maintenance 
 
