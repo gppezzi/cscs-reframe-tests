@@ -301,7 +301,6 @@ class MatrixModeRenderer(ReportGenerator):
             sorted_groups[category] = groups
 
         for group in sorted(sorted_groups.keys()):
-#        for group in sorted_groups:
             if group == "other" and not grouped_tests[group]:
                 continue
 
