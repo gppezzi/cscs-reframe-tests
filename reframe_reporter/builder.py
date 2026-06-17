@@ -69,7 +69,7 @@ class CommandBuilder:
             List[str]: The complete command including the target override.
         """
         base_cmd = self.build_reframe_cmd(system, mode, tag, extra_args)
-        return base_cmd + ["--system", target]
+        return base_cmd + ["--system", target] + ["--mode", mode]
 
     def build_output_filename(self, system: str, mode: str, tag: str) -> str:
         """
