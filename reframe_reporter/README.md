@@ -187,7 +187,7 @@ When `RFM_UENV_RECIPES_DIR` is set, the existing `CSCS_RFM_UENV` / `RFM_UENV` va
 
 ## Coverage Matrix Snapshots
 
-* [https://github.com/gppezzi/cscs-reframe-tests/tree/TestReporter/reframe_reporter/snapshots](./snapshots)
+* [https://github.com/eth-cscs/cscs-reframe-tests/reframe_reporter/snapshots](./snapshots)
 
 ---
 
