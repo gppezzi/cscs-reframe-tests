@@ -76,10 +76,8 @@ def main():
             effective_mode = "matrix"
 
         if effective_mode == "matrix":
-            targets = [] 
-            labels = [] 
+            targets = []
             for entry in args.matrix_mode.split(','):
-                # Expected format: label:system:mode 
                 targets.append(entry.strip())
             
             output_file = orchestrator.run_matrix_mode(parsed.system, "matrix", parsed.tag, targets, parsed.extra_args)

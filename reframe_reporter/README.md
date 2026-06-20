@@ -16,6 +16,17 @@ A modular Python tool for discovering, analyzing, and reporting eligible ReFrame
 
 ---
 
+## Prerequisites
+
+Before using the ReFrame Test Reporter, ensure the following are available:
+
+- **Python 3.9+** — required for type hint syntax used throughout the codebase.
+- **ReFrame** — must be installed and accessible in `PATH`. The reporter runs `reframe --describe` as a subprocess.
+- **uenv CLI** — required for `generate_uenv_image_inventory.py` to query available UENV images on Alps vClusters.
+- **Access to CSCS vClusters** — needed for uenv inventory generation and for running ReFrame with system configurations.
+
+---
+
 ### 🔄 Workflow: Matrix Generation & uenv Integration
 
 The reporter follows a multi-stage pipeline to transform raw ReFrame metadata and uenv environment information into a structured compliance matrix.
@@ -45,20 +56,21 @@ The reporter follows a multi-stage pipeline to transform raw ReFrame metadata an
 ```mermaid
 graph TD
     subgraph "Input Phase"
-        A[CLI Arguments<br/>--matrix-mode, --uenv-*] --> B(CommandBuilder)
+        A[CLI Arguments<br/>--matrix-mode, --uenv-*] --> O[ReportOrchestrator]
+        O --> B(CommandBuilder)
         C[uenv Recipes & Inventory] -.->|Injects Env Vars| B
     end
 
     subgraph "Execution Phase (ReFrame)"
-        B --> D{Executor}
+        O --> D{Executor}
         D -->|Runs subprocess| E["reframe --describe<br/>(Target 1, Target 2, ...)"]
         E -->|Raw JSON Output| F[JSON Parser]
     end
 
     subgraph "Aggregation & Rendering"
-        F --> G[Data Normalization]
-        G --> H[MatrixModeRenderer]
-        H --> I[Final Markdown Report<br/>with ✅/❌ Compliance]
+        O --> R[SingleModeRenderer / MatrixModeRenderer]
+        F -->|Parsed Data| R
+        R --> I[Final Markdown Report<br/>with ✅/❌ Compliance]
     end
 ```
 ---
@@ -69,13 +81,20 @@ The core logic is structured cleanly within a decoupled, single-responsibility l
 
 ```text
 reframe_reporter/
-├── cli.py         # Parses CLI flags, applies defaults, and builds the configuration schema.
-├── models.py      # Structured dataclasses ensuring internal type-safety (ReFrameReporterConfig).
-├── builder.py     # Constructs sanitized ReFrame sub-commands and handles complex file naming logic.
-├── executor.py    # Subprocess layer featuring bracket-isolation logic to pull clean JSON from noisy logs.
-├── renderers.py   # Strategy-pattern generators translating parsed datasets into final Markdown tables.
-└── utils.py       # Reusable, robust string sanitizers and Markdown-safe formatting helpers.
+├── run_report.py                       # Main entry point.
+├── cli.py                              # Parses CLI flags, applies defaults, and builds the configuration schema.
+├── models.py                           # Structured dataclasses ensuring internal type-safety (ReFrameReporterConfig).
+├── orchestrator.py                     # Coordinates execution flow between builder, executor, and renderers.
+├── builder.py                          # Constructs sanitized ReFrame sub-commands and handles complex file naming logic.
+├── executor.py                         # Subprocess layer featuring bracket-isolation logic to pull clean JSON from noisy logs.
+├── renderers.py                        # Strategy-pattern generators translating parsed datasets into final Markdown tables.
+├── utils.py                            # Reusable, robust string sanitizers and Markdown-safe formatting helpers.
+├── generate_uenv_image_inventory.py    # Standalone script to query uenv CLI and produce per-system or merged JSON inventories.
+├── CHANGELOG.md                        # Version history.
+└── README.md                           # This file.
 ```
+
+> See [CHANGELOG.md](CHANGELOG.md) for the full version history.
 
 ---
 
@@ -126,24 +145,49 @@ python3 run_report.py \
 | :--- | :--- | :--- |
 | `--system`           | `str`  | **Required for single-system runs.** Name of the target system (e.g., `daint`, `alps`). |
 | `--mode`             | `str`  | CLI flag forwarded to ReFrame (e.g., `maintenance`, `production`). |
-| `-C`, `--checks`     | `path` | **Required.** Directory containing ReFrame *check* files. Can be specified multiple times. |
-| `-c`, `--config_dir` | `path` | **Required.** Directory containing *system* configuration files passed directly to ReFrame. |
+| `-C`, `--checks`     | `path` | **Required.** Path(s) forwarded as ReFrame's `-C` (config file). Can be specified multiple times. |
+| `-c`, `--config_dir` | `path` | **Required.** Directory forwarded as ReFrame's `-c` (check path). |
 | `-R`, `--recursive`| *Flag* | Instructs the framework to search for check directories recursively. |
 | `-f`, `--filename` | `str` | Custom base string for the output report (Defaults to `eligible_tests.md`). |
-| `-o`, `--output_dir` | `path` | Override path for outputs (Defaults to the checking script's root directory). |
+| `-o`, `--output_dir` | `path` | Override path for outputs (Defaults to the current working directory). |
 | `--uenv-recipes-dir`| `path` | Repository containing the `reframe.yaml` files. |
 | `--uenv-image-inventory`| `path`| Path to the JSON file containing the inventory of uenvs. |
 | `--matrix-mode` | `str` | Comma-separated list map for system testing targets (`label:system:mode`). |
-| `--matrix-tag` | `str` | Matrix entry argument filter (`label:arg`). Can be passed multiple times. |
+| `--matrix-tag` | `str` | Reserved for future use. Currently parsed but not applied to matrix filtering. |
 | `-v`, `--verbose` | *Flag* | Enables verbose logging output. |
 
 > 💡 **Note:** Any arguments provided at the very end of your script invocation following a double-dash (`--`) are cleanly processed, normalized, and seamlessly forwarded right to the underlying ReFrame subprocess.
 
 ---
 
+## UENV Integration Details
+
+The reporter enriches ReFrame test listings by integrating with the UENV (User Environment) system through three environment variables consumed by `config/utilities/uenv.py`:
+
+| Environment Variable | Source | Purpose |
+| :--- | :--- | :--- |
+| `RFM_UENV_RECIPES_DIR` | `--uenv-recipes-dir` | Path to `alps-uenv/recipes` containing `extra/reframe.yaml` metadata files. |
+| `RFM_UENV_IMAGE_INVENTORY` | `--uenv-image-inventory` | Path to a pre-generated JSON inventory (from `generate_uenv_image_inventory.py`). |
+| `RFM_UENV_TARGET_SYSTEMS` | Inferred from `--matrix-mode` | Comma-separated systems for per-system `uenv image find --json @<system>` queries. |
+
+### How it works
+
+1. **`_load_uenv_image_inventory(path)`** — Loads the UENV image inventory from either:
+   - A pre-generated JSON file (set via `RFM_UENV_IMAGE_INVENTORY`).
+   - Direct CLI queries (`uenv image find --json @<system>`) per target system when `RFM_UENV_TARGET_SYSTEMS` is set. Results are merged with deduplication.
+   - Falls back to `uenv image find --json` with no system filter (or `@$CLUSTER_NAME`).
+
+2. **`_recipe_target_systems(recipe_root, recipe_dir_path, inventory_records)`** — Matches a recipe (by name/version/uarch) against inventory records to determine which systems it is available on.
+
+3. **`_load_uenvs_from_recipes(recipe_dir)`** — Scans the recipes directory for `extra/reframe.yaml` files, resolves target systems via inventory records, and builds structured environment definitions for ReFrame.
+
+When `RFM_UENV_RECIPES_DIR` is set, the existing `CSCS_RFM_UENV` / `RFM_UENV` variable path is bypassed entirely and the recipe-based discovery is used instead.
+
+---
+
 ## Coverage Matrix Snapshots
 
-* [https://github.com/eth-cscs/cscs-reframe-tests/reframe_reporter/snapshots](./snapshots)
+* [https://github.com/gppezzi/cscs-reframe-tests/tree/TestReporter/reframe_reporter/snapshots](./snapshots)
 
 ---
 
