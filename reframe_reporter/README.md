@@ -112,7 +112,7 @@ python3 run_report.py \
    -c cscs-reframe-tests/checks
 ```
 
-### 2. Matrix Mode (Multi-Target Coverage)
+### 2. Matrix Mode 
 Provide multiple target entries to generate an aggregated test matrix. The `--matrix-mode` flag accepts a comma-separated list of targets formatted as `label:system:mode`.
 
 **Example with multiple targets:**
@@ -123,7 +123,17 @@ python3 run_report.py \
    -c cscs-reframe-tests/checks
 ```
 
-### 3. Metadata Ingestion with User Environments (uenv)
+### 3. Matrix Tag 
+Compare test coverage across different tag expressions on one or more systems. The `--matrix-tag` flag accepts a comma-separated list of targets formatted as `label:system:tag`.
+
+```bash
+python3 run_report.py \
+   --matrix-tag "daint-prod:daint:production,daint-maint:daint:maintenance" \
+   -C cscs-reframe-tests/config/cscs.py \
+   -c cscs-reframe-tests/checks
+```
+
+### 4. Metadata Ingestion with User Environments (uenv)
 Perform uenv-aware test listing using a previously generated uenv image inventory.
 
 ```bash
@@ -153,7 +163,7 @@ python3 run_report.py \
 | `--uenv-recipes-dir`| `path` | Repository containing the `reframe.yaml` files. |
 | `--uenv-image-inventory`| `path`| Path to the JSON file containing the inventory of uenvs. |
 | `--matrix-mode` | `str` | Comma-separated list map for system testing targets (`label:system:mode`). |
-| `--matrix-tag` | `str` | Reserved for future use. Currently parsed but not applied to matrix filtering. |
+| `--matrix-tag` | `str` | Comma-separated list for tag-based coverage matrix (`label:system:tag`). Mutually exclusive with `--matrix-mode`. |
 | `-v`, `--verbose` | *Flag* | Enables verbose logging output. |
 
 > 💡 **Note:** Any arguments provided at the very end of your script invocation following a double-dash (`--`) are cleanly processed, normalized, and seamlessly forwarded right to the underlying ReFrame subprocess.
@@ -246,4 +256,14 @@ python3 cscs-reframe-tests/reframe_reporter/run_report.py \
 --uenv-image-inventory cscs-reframe-tests/reframe_reporter/snapshots/uenv-inventories/uenv_image_inventory_daint_eiger_santis_clariden_starlex.json \
 -o cscs-reframe-tests/reframe_reporter/snapshots \
 -f eligible_tests_matrix_mode-maintenance-production.md
+```
+
+## Tag-based Matrix
+
+```bash
+python3 cscs-reframe-tests/reframe_reporter/run_report.py \
+  --matrix-tag "prod:daint:production,maint:daint:maintenance,node-validator:daint:vs-node-validator" \
+  -C cscs-reframe-tests/config/cscs.py \
+  -c cscs-reframe-tests/checks \
+  -o reframe_reporter/snapshots
 ```

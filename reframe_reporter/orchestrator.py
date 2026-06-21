@@ -161,6 +161,73 @@ class ReportOrchestrator:
         self.matrix_renderer.generate(all_results, output_path, context)
         return output_path
 
+    def run_matrix_tag_mode(self, system: str, mode: str, tag: str, targets: List[str], extra_args: List[str]) -> Path:
+        """
+        Executes ReFrame for multiple tag targets and aggregates the results into a matrix report.
+
+        Unlike matrix-mode, each entry specifies a tag expression instead of a mode.
+        No --mode flag is forwarded to ReFrame; filtering is done solely via --tag.
+
+        Args:
+            system (str): The base system name (used for env setup, fallback for targets).
+            mode (str): The execution mode (always 'tag' for this method).
+            tag (str): Ignored in tag-matrix mode (each target provides its own tag).
+            targets (List[str]): A list of targets in 'label:system:tag' format.
+            extra_args (List[str]): Additional arguments to pass to ReFrame.
+
+        Returns:
+            Path: The path to the generated matrix report file.
+        """
+        all_results = []
+        processed_targets_ordered = []
+        any_failures = False
+
+        for target in targets:
+            clean_target = target.strip()
+            parts = clean_target.split(':')
+            label = parts[0] if len(parts) > 0 and parts[0] else clean_target
+            exec_system = parts[1] if len(parts) > 1 and parts[1] else system
+            exec_tag = parts[2] if len(parts) > 2 and parts[2] else ""
+
+            cmd = self.builder.build_tag_reframe_cmd(exec_tag, extra_args, exec_system)
+            env = self._prepare_env(system)
+
+            print(
+                f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] "
+                f"Executing Matrix Tag Target: {exec_system} (Label: {label}, Tag: {exec_tag})"
+            )
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Command: {' '.join(cmd)}")
+
+            result = self._run_and_save_raw(cmd, env)
+
+            if result.returncode == 0:
+                try:
+                    data = self.executor.parse_json(result.stdout)
+                    for item in data:
+                        item["target"] = clean_target
+                        all_results.append(item)
+                    if clean_target not in processed_targets_ordered:
+                        processed_targets_ordered.append(clean_target)
+                except ValueError as e:
+                    print(f"ERROR: {e}")
+                    any_failures = True
+            else:
+                self._report_failure(f"Matrix Tag Target ({clean_target})", cmd, result)
+                any_failures = True
+
+        filename = self.builder.build_output_filename("tag", mode, "")
+        target_dir = self._get_target_dir()
+        output_path = target_dir / filename
+        context = {
+            "system": system,
+            "mode": mode,
+            "tag": tag,
+            "targets": processed_targets_ordered if processed_targets_ordered else targets,
+            "any_failures": any_failures
+        }
+        self.matrix_renderer.generate(all_results, output_path, context)
+        return output_path
+
     def _report_failure(self, context_label: str, cmd: List[str], result: Any) -> None:
         """Detailed error reporting for failed ReFrame executions."""
         print(f"\n{'!'*20} ERROR {'!'*20}")

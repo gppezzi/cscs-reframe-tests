@@ -27,7 +27,7 @@ def parse_args() -> Tuple[ParsedArgs, argparse.Namespace]:
     parser.add_argument("-o", "--output_dir", type=str, help="Output directory for the report")
     parser.add_argument("--uenv-image-inventory", type=str, help="Path to UHM image inventory JSON")
     parser.add_argument("--matrix-mode", type=str, help="Comma-separated matrix entries: label:system:mode,label2:system2:mode")
-    parser.add_argument("--matrix-tag", action='append', help="Matrix entry: label:arg")
+    parser.add_argument("--matrix-tag", type=str, help="Comma-separated matrix entries: label:system:tag,label2:system2:tag2")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode")
     parser.add_argument("extra", nargs=argparse.REMAINDER, help="Extra args passed to ReFrame after '--'")
 
@@ -70,17 +70,22 @@ def main():
     try:
         parsed, args = parse_args()
         orchestrator = ReportOrchestrator(parsed.config)
-        
+
+        if args.matrix_mode and args.matrix_tag:
+            raise ValueError("--matrix-mode and --matrix-tag are mutually exclusive")
+
         effective_mode = parsed.mode
         if args.matrix_mode:
             effective_mode = "matrix"
+        elif args.matrix_tag:
+            effective_mode = "tag"
 
         if effective_mode == "matrix":
-            targets = []
-            for entry in args.matrix_mode.split(','):
-                targets.append(entry.strip())
-            
+            targets = [entry.strip() for entry in args.matrix_mode.split(',') if entry.strip()]
             output_file = orchestrator.run_matrix_mode(parsed.system, "matrix", parsed.tag, targets, parsed.extra_args)
+        elif effective_mode == "tag":
+            targets = [entry.strip() for entry in args.matrix_tag.split(',') if entry.strip()]
+            output_file = orchestrator.run_matrix_tag_mode(parsed.system, "tag", parsed.tag, targets, parsed.extra_args)
         else:
             if not parsed.system:
                 raise ValueError("--system is required when '--mode' is 'single'")

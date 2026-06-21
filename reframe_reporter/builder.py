@@ -41,11 +41,11 @@ class CommandBuilder:
             cmd.extend(["--system", system])
 
         # 4.5 Add execution mode if provided (not the internal orchestrator modes)
-        if mode and mode not in ["single", "matrix"]:
+        if mode and mode not in ["single", "matrix", "tag"]:
             cmd.extend(["--mode", mode])
 
         # 5. Handle the tag specifically if it wasn't part of a pattern
-        if tag and mode not in ["matrix", "tag"]:
+        if tag and mode not in ["matrix"]:
              cmd.extend(["--tag", tag])
 
         # 6. Process and Clean Extra Arguments (Ported from list_tests.py)
@@ -71,6 +71,37 @@ class CommandBuilder:
         base_cmd = self.build_reframe_cmd(system, mode, tag, extra_args)
         return base_cmd + ["--system", target] + ["--mode", mode]
 
+    def build_tag_reframe_cmd(self, tag: str, extra_args: List[str], target_system: str) -> List[str]:
+        """
+        Constructs a ReFrame command for matrix-tag mode entries.
+
+        Unlike build_rel_reframe_cmd, this method does NOT forward --mode
+        (the user opted to filter by tag directly rather than via a mode).
+
+        Args:
+            tag (str): The tag expression to filter by (e.g., 'production').
+            extra_args (List[str]): Additional CLI arguments provided by the user.
+            target_system (str): The specific system to target (overrides any global --system).
+
+        Returns:
+            List[str]: The complete command as a list of strings.
+        """
+        cmd = ["reframe", "--describe"]
+
+        if self.config.recursive:
+            cmd.append("-R")
+
+        if target_system:
+            cmd.extend(["--system", target_system])
+
+        if tag:
+            cmd.extend(["--tag", tag])
+
+        cleaned_extra = self._normalize_extra(extra_args)
+        cmd.extend(cleaned_extra)
+
+        return cmd
+
     def build_output_filename(self, system: str, mode: str, tag: str) -> str:
         """
         Constructs a sanitized and truncated filename for the report following legacy standards.
@@ -90,6 +121,8 @@ class CommandBuilder:
 
         if system == "matrix":
             return f"{Path(self.config.filename).stem}_matrix.md"
+        if system == "tag":
+            return f"{Path(self.config.filename).stem}_tag-matrix.md"
 
         # At this point, we are guaranteed to be in a single-run context.
         base_name = self.config.filename
