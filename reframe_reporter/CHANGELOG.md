@@ -4,6 +4,27 @@ All notable changes to `list_tests.py` are documented here.
 
 ---
 
+## [1.5.0] - 2026-06-22
+
+### Added
+- Matrix mode support for tag-based coverage.
+- `uenv.py` implementation for fetching UEnv tests within the reporter.
+- Utilities and snapshots for generating/managing JSON UEnv inventories.
+- Initial tests with pytest
+
+### Changed
+- Removed single system run option (to simplify the code)
+  - Should use matrix mode with single item instead
+- Refactored command building and filename logic for improved reliability.
+- Renamed UEnv environment variable to `CSCS_RFM_UENV`.
+- Improved Markdown report formatting, including timestamps and alphabetical grouping for matrix runs.
+
+### Fixed
+- Fixed missing CLI arguments during matrix execution.
+- Corrected documentation gaps and repository links.
+
+---
+
 ## [1.4.0] - 2026-06-10
 
 ### Changed
