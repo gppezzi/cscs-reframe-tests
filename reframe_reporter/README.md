@@ -6,8 +6,7 @@ A modular Python tool for discovering, analyzing, and reporting eligible ReFrame
 
 ## 🚀 Key Features
 
-* **Single-System Reporting**: Generates comprehensive Markdown reports of eligible tests for a target system, complete with parameterized test breakdowns, descriptions, and organized test categories.
-* **Dynamic Matrix Mode**: Automatically compares multiple test configurations or environment matrices, producing a cross-system test eligibility matrix (✅/❌) with summary metrics.
+* **Matrix Reporting**: Generates comprehensive Markdown reports for one or more target configurations, producing a cross-system test eligibility matrix (✅/❌) with summary metrics.
 * **Parameter Breakdown**: Extracts internal ReFrame parameter injections (e.g., %param=val) and formats them into readable sub-bullets.
 * **uenv Metadata Enrichment**: Extends ReFrame test listing by cross-checking:
   * `uenv image ls --json`
@@ -153,8 +152,6 @@ python3 run_report.py \
 
 | Argument / Flag | Input Type | Description |
 | :--- | :--- | :--- |
-| `--system`           | `str`  | **Required for single-system runs.** Name of the target system (e.g., `daint`, `alps`). |
-| `--mode`             | `str`  | CLI flag forwarded to ReFrame (e.g., `maintenance`, `production`). |
 | `-C`, `--checks`     | `path` | **Required.** Path(s) forwarded as ReFrame's `-C` (config file). Can be specified multiple times. |
 | `-c`, `--config_dir` | `path` | **Required.** Directory forwarded as ReFrame's `-c` (check path). |
 | `-R`, `--recursive`| *Flag* | Instructs the framework to search for check directories recursively. |

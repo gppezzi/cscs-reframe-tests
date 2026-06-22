@@ -5,22 +5,25 @@ from typing import Dict, Any, List
 from .models import ReFrameReporterConfig
 from .builder import CommandBuilder
 from .executor import ReFrameReporterExecutor
-from .renderers import SingleModeRenderer, MatrixModeRenderer
+from .renderers import MatrixModeRenderer
 
 class ReportOrchestrator:
-    def __init__(self, config: ReFrameReporterConfig):
+    def __init__(self, config: ReFrameReporterConfig, explicit_filename: bool = False):
         """
         Initializes the ReportOrchestrator with the provided configuration.
 
         Args:
             config (ReFrameReporterConfig): The configuration object containing settings for 
                 output directories, check paths, environment variables, and other parameters.
+            explicit_filename (bool): If True, the filename from config is used as-is without 
+                modification (for '-f' flag). If False, the filename is modified based on 
+                report type (matrix mode appends suffix).
         """
         self.config = config
         self.builder = CommandBuilder(config)
         self.executor = ReFrameReporterExecutor()
-        self.single_renderer = SingleModeRenderer()
         self.matrix_renderer = MatrixModeRenderer()
+        self.explicit_filename = explicit_filename
 
     def _get_target_dir(self) -> Path:
         """
@@ -56,55 +59,14 @@ class ReportOrchestrator:
         os.makedirs(path, exist_ok=True)
         return path
 
-    def run_single_mode(self, system: str, mode: str, tag: str, extra_args: List[str]) -> Path:
-        """
-        Executes a single ReFrame command and generates a report.
 
-        Args:
-            system (str): The target system name.
-            mode (str): The execution mode (e.g., 'maintenance', 'production').
-            tag (str): An optional tag to identify the run.
-            extra_args (List[str]): Additional arguments to pass to ReFrame.
 
-        Returns:
-            Path: The path to the generated report file.
-        """
-        cmd = self.builder.build_reframe_cmd(system, mode, tag, extra_args)
-        env = self._prepare_env(system)
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] Executing Single Mode: {' '.join(cmd)}")
-        result = self._run_and_save_raw(cmd, env)
-
-        if result.returncode != 0:
-            self._report_failure("Single Mode", cmd, result)
-            data = []
-        else:
-            try:
-                data = self.executor.parse_json(result.stdout)
-            except ValueError as e:
-                print(f"ERROR: {e}")
-                data = []
-
-        filename = self.builder.build_output_filename(system, mode, tag if tag else "")
-        target_dir = self._get_target_dir()
-        output_path = target_dir / filename
-        context = {
-            "system": system, 
-            "mode": mode, 
-            "tag": tag,
-            "checks_dir": str(self.config.check_paths[0] if self.config.check_paths else "")
-        }
-        self.single_renderer.generate(data, output_path, context)
-        return output_path
-
-    def run_matrix_mode(self, system: str, mode: str, tag: str, targets: List[str], extra_args: List[str]) -> Path:
+    def run_matrix_mode(self, targets: List[str], extra_args: List[str]) -> Path:
         """
         Executes ReFrame for multiple targets and aggregates the results into a matrix report.
 
         Args:
-            system (str): The target system name.
-            mode (str): The execution mode (e.g., 'maintenance', 'production').
-            tag (str): An optional tag to identify the run.
-            targets (List[str]): A list of targets to execute, potentially in 'label:system' format.
+            targets (List[str]): A list of targets in 'label:system:mode' format.
             extra_args (List[str]): Additional arguments to pass to ReFrame.
 
         Returns:
@@ -116,14 +78,13 @@ class ReportOrchestrator:
 
         for target in targets:
             clean_target = target.strip()
-
             parts = clean_target.split(':')
             label = parts[0] if len(parts) > 0 and parts[0] else clean_target
-            exec_system = parts[1] if len(parts) > 1 and parts[1] else system
-            exec_mode = parts[2] if len(parts) > 2 and parts[2] else mode
+            exec_system = parts[1] if len(parts) > 1 and parts[1] else ""
+            exec_mode = parts[2] if len(parts) > 2 and parts[2] else ""
 
-            cmd = self.builder.build_rel_reframe_cmd(system, exec_mode, tag, extra_args, exec_system)
-            env = self._prepare_env(system)
+            cmd = self.builder.build_reframe_cmd(exec_system, exec_mode, "", extra_args)
+            env = self._prepare_env(exec_system)
 
             print(
                 f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] "
@@ -148,30 +109,24 @@ class ReportOrchestrator:
                 self._report_failure(f"Matrix Target ({clean_target})", cmd, result)
                 any_failures = True
 
-        filename = self.builder.build_output_filename("matrix", mode, tag if tag else "")
+        filename = self.builder.build_output_filename("matrix", explicit_filename=self.explicit_filename)
         target_dir = self._get_target_dir()
         output_path = target_dir / filename
         context = {
-            "system": system,
-            "mode": mode,
-            "tag": tag,
+            "system": "",
+            "mode": "",
+            "tag": "",
             "targets": processed_targets_ordered if processed_targets_ordered else targets,
             "any_failures": any_failures
         }
         self.matrix_renderer.generate(all_results, output_path, context)
         return output_path
 
-    def run_matrix_tag_mode(self, system: str, mode: str, tag: str, targets: List[str], extra_args: List[str]) -> Path:
+    def run_matrix_tag_mode(self, targets: List[str], extra_args: List[str]) -> Path:
         """
         Executes ReFrame for multiple tag targets and aggregates the results into a matrix report.
 
-        Unlike matrix-mode, each entry specifies a tag expression instead of a mode.
-        No --mode flag is forwarded to ReFrame; filtering is done solely via --tag.
-
         Args:
-            system (str): The base system name (used for env setup, fallback for targets).
-            mode (str): The execution mode (always 'tag' for this method).
-            tag (str): Ignored in tag-matrix mode (each target provides its own tag).
             targets (List[str]): A list of targets in 'label:system:tag' format.
             extra_args (List[str]): Additional arguments to pass to ReFrame.
 
@@ -186,11 +141,11 @@ class ReportOrchestrator:
             clean_target = target.strip()
             parts = clean_target.split(':')
             label = parts[0] if len(parts) > 0 and parts[0] else clean_target
-            exec_system = parts[1] if len(parts) > 1 and parts[1] else system
+            exec_system = parts[1] if len(parts) > 1 and parts[1] else ""
             exec_tag = parts[2] if len(parts) > 2 and parts[2] else ""
 
             cmd = self.builder.build_tag_reframe_cmd(exec_tag, extra_args, exec_system)
-            env = self._prepare_env(system)
+            env = self._prepare_env(exec_system)
 
             print(
                 f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [INFO] "
@@ -215,13 +170,13 @@ class ReportOrchestrator:
                 self._report_failure(f"Matrix Tag Target ({clean_target})", cmd, result)
                 any_failures = True
 
-        filename = self.builder.build_output_filename("tag", mode, "")
+        filename = self.builder.build_output_filename("tag_matrix", explicit_filename=self.explicit_filename)
         target_dir = self._get_target_dir()
         output_path = target_dir / filename
         context = {
-            "system": system,
-            "mode": mode,
-            "tag": tag,
+            "system": "",
+            "mode": "",
+            "tag": "",
             "targets": processed_targets_ordered if processed_targets_ordered else targets,
             "any_failures": any_failures
         }
@@ -267,6 +222,6 @@ class ReportOrchestrator:
         if self.config.uenv_image_inventory:
             env["RFM_UENV_IMAGE_INVENTORY"] = str(self.config.uenv_image_inventory.resolve())
         if self.config.uenv_recipes_dir or self.config.uenv_image_inventory:
-            env["RFM_UEV_TARGET_SYSTEMS"] = system 
+            env["RFM_UENV_TARGET_SYSTEMS"] = system 
         env.update(self.config.uenv_env)
         return env

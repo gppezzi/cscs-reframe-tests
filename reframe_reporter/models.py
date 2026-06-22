@@ -28,6 +28,7 @@ class ReFrameReporterConfig:
     uenv_env: dict[str, str] = field(default_factory=dict)
     output_dir: Path = field(default_factory=lambda: Path.cwd())
     filename: str = "eligible_tests.md"
+    explicit_filename: bool = False
     system: str = ""
     mode: Optional[str] = None
     tag: Optional[str] = None

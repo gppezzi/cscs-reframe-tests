@@ -54,23 +54,6 @@ class CommandBuilder:
 
         return cmd
 
-    def build_rel_reframe_cmd(self, system: str, mode: str, tag: str, extra_args: List[str], target: str) -> List[str]:
-        """
-        Special builder for matrix targets to append the specific target string.
-
-        Args:
-            system (str): The base system name.
-            mode (str): The execution mode.
-            tag (str): The filtering tag.
-            extra_args (List[str]): Additional CLI arguments.
-            target (str): The specific target identifier for the matrix run.
-
-        Returns:
-            List[str]: The complete command including the target override.
-        """
-        base_cmd = self.build_reframe_cmd(system, mode, tag, extra_args)
-        return base_cmd + ["--system", target] + ["--mode", mode]
-
     def build_tag_reframe_cmd(self, tag: str, extra_args: List[str], target_system: str) -> List[str]:
         """
         Constructs a ReFrame command for matrix-tag mode entries.
@@ -102,49 +85,33 @@ class CommandBuilder:
 
         return cmd
 
-    def build_output_filename(self, system: str, mode: str, tag: str) -> str:
+    def build_output_filename(self, report_type: str, explicit_filename: bool = False) -> str:
         """
-        Constructs a sanitized and truncated filename for the report following legacy standards.
-
-        Format: [base_name]_[system]_mode-[mode]_tags-[tag].[ext]
+        Constructs a sanitized and truncated filename for the report.
+        If the filename was explicitly provided by the user (via -f/--filename argument),
+        it is used as-is without any modification.
 
         Args:
-            system (str): The target system name or "matrix".
-            mode (str): The execution mode.
-            tag (str): The filtering tag.
+            report_type (str): The type of report ("matrix", "tag_matrix").
+            explicit_filename (bool): If True, use config.filename as-is without modification.
 
         Returns:
             str: The formatted filename string.
         """
-        from .utils import StringUtils
         from pathlib import Path
 
-        if system == "matrix":
+        if explicit_filename:
+            # If -f was provided by user, use the filename EXACTLY as specified
+            # without any automatic modification based on report_type
+            return self.config.filename
+
+        if report_type == "matrix":
             return f"{Path(self.config.filename).stem}_matrix.md"
-        if system == "tag":
+        if report_type == "tag_matrix":
             return f"{Path(self.config.filename).stem}_tag-matrix.md"
 
-        # At this point, we are guaranteed to be in a single-run context.
-        base_name = self.config.filename
-        stem = Path(base_name).stem
-        parts = [StringUtils.sanitize_for_filename(stem)]
+        raise ValueError(f"Unknown report type: {report_type}")
 
-        # 2. Add system part (guaranteed not to be 'matrix')
-        if system:
-            parts.append(StringUtils.sanitize_for_filename(system))
-
-        # 3. Add mode part (prefixed with 'mode-')
-        # We only add mode if it's a specific execution mode, excluding the orchestrator type 'single'.
-        if mode and mode != "single":
-            parts.append(f"mode-{StringUtils.sanitize_for_filename(mode)}")
-
-        # 4. Add tags part (prefixed with 'tags-')
-        if tag:
-            parts.append(f"tags-{StringUtils.sanitize_for_filename(tag)}")
-
-        # Combine all parts and append the original extension
-        filename = "_".join(parts) + Path(base_name).suffix
-        return filename
 
     def extract_tag_from_extra(self, extra_args: List[str]) -> Optional[str]:
         """
