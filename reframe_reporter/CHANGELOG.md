@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `list_tests.py` are documented here.
+All notable changes to `reframe_reporter` are documented here.
 
 ---
 
