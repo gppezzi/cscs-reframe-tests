@@ -1,6 +1,5 @@
 import pytest
 from unittest.mock import MagicMock
-from reframe_reporter.cli import main
 from reframe_reporter.models import ReFrameReporterConfig
 from reframe_reporter.orchestrator import ReportOrchestrator
 
