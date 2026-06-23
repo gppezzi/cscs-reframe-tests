@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 from unittest.mock import MagicMock
 from reframe_reporter.cli import main
 from reframe_reporter.models import ReFrameReporterConfig

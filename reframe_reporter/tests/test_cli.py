@@ -1,7 +1,6 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import sys
-from io import StringIO
 from reframe_reporter.cli import main
 
 def run_main(args):
