@@ -303,7 +303,52 @@ including `rocm`, `mpi`, and `prgenv`.
 
 ---
 
-## 7.  Common pitfalls
+## 7.  CI pipelines (`cscs-ci run`)
+
+CI is triggered by commenting `cscs-ci run <pipeline>` on a PR.  Two
+pipeline families exist, and the right one depends on whether the test
+needs a uenv:
+
+### Uenv pipelines — `alps-<system>-uenv`
+
+For tests that require `+openmp`, `+mpi`, `+rocm`, or `+prgenv`, pass a
+uenv via `CSCS_RFM_UENV` (note `;` separates the pipeline from the
+variable).  These run `ci/alps_uenv.yml`:
+
+```shell
+cscs-ci run alps-starlex-uenv;CSCS_RFM_UENV=prgenv-gnu/25.11:v1
+cscs-ci run alps-daint-uenv;CSCS_RFM_UENV=prgenv-gnu/25.11:v1
+cscs-ci run alps-beverin-uenv;CSCS_RFM_UENV=prgenv-gnu/25.07-6.3.3:v12
+```
+
+### Non-uenv pipelines — `alps-<system>`
+
+For `builtin`-only tests (no `+uenv` requirement), use the bare
+`alps-<system>` triggers instead.  These run `ci/alps.yml` with
+`--mode daily_production` and `CSCS_RFM_UENV` **unset**, so tests gated
+on `+uenv` are automatically skipped:
+
+```shell
+cscs-ci run alps-starlex
+cscs-ci run alps-daint
+cscs-ci run alps-clariden
+cscs-ci run alps-santis
+cscs-ci run alps-eiger
+cscs-ci run alps-pilatus
+cscs-ci run alps-beverin
+```
+
+> **Picking the right pipeline:** if a test and its dependencies resolve
+> under the `builtin` environ (e.g. simple `printenv`/`bash`/`hostname`
+> checks like the `sysint-*` integration tests in
+> `checks/system/integration/alps.py`), prefer the **non-uenv** trigger —
+> it is faster and exercises the exact environment the test targets.
+> Only reach for `alps-<system>-uenv;CSCS_RFM_UENV=…` when the test
+> actually needs a programming environment.
+
+---
+
+## 8.  Common pitfalls
 
 1. **`-J` / `self.job.options` timing**: Slurm options must be set
    before the job script is generated.  Use `sched_options` or the `-S`
